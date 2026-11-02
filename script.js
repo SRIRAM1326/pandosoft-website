@@ -1088,6 +1088,13 @@
       renderBook();
       if (document.activeElement !== amountInput) recalc();
     }
+
+    // Tools suite live updates
+    if (typeof updateHeatmapTile === 'function') updateHeatmapTile(k);
+    if (typeof runFullConverter === 'function') runFullConverter();
+    if (typeof pnlCoinSelect !== 'undefined' && pnlCoinSelect && pnlCoinSelect.value === k && typeof calcPnl === 'function') {
+      calcPnl();
+    }
   }
 
   /* CoinGecko live fetch */
@@ -1347,6 +1354,463 @@
       if (history.replaceState) history.replaceState(null, '', id);
     });
   });
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     TOOLS SUITE: Converter, Heatmap, Profit/Loss, SIP, Tax & TDS
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  // 1. Tool Tabs Switcher
+  const toolsNav = $('#toolsNav');
+  const toolViews = {
+    converter: $('#toolViewConverter'),
+    heatmap:   $('#toolViewHeatmap'),
+    pnl:       $('#toolViewPnl'),
+    sip:       $('#toolViewSip'),
+    tax:       $('#toolViewTax'),
+  };
+
+  if (toolsNav) {
+    segmented(toolsNav, (btn) => {
+      const toolKey = btn.dataset.tool;
+      Object.entries(toolViews).forEach(([k, view]) => {
+        if (!view) return;
+        const isActive = k === toolKey;
+        view.classList.toggle('is-active', isActive);
+        view.hidden = !isActive;
+      });
+      if (toolKey === 'heatmap') renderHeatmap();
+    });
+  }
+
+  // 2. Full Currency Converter
+  const convAmount = $('#convAmount');
+  const convFromSelect = $('#convFromSelect');
+  const convToSelect = $('#convToSelect');
+  const convReceiveVal = $('#convReceiveVal');
+  const convSwapFull = $('#convSwapFull');
+  const convSendSym = $('#convSendSym');
+  const convRecSym = $('#convRecSym');
+  const convOutPrimary = $('#convOutPrimary');
+  const convExchangeRateDisplay = $('#convExchangeRateDisplay');
+  const convFeeDisplay = $('#convFeeDisplay');
+  const convTdsDisplay = $('#convTdsDisplay');
+  const convNetDisplay = $('#convNetDisplay');
+
+  const FIAT_RATES_TO_USD = {
+    USD: 1.0,
+    INR: 1 / 89.5,
+    EUR: 1.08,
+    GBP: 1.28,
+    AED: 0.272,
+  };
+
+  function getRateInUSD(symbol) {
+    if (COINS[symbol]) {
+      return (COINS[symbol].price / (usdtInrRate || 89.5));
+    }
+    if (symbol === 'INR') return 1 / (usdtInrRate || 89.5);
+    return FIAT_RATES_TO_USD[symbol] || 1;
+  }
+
+  function runFullConverter() {
+    if (!convAmount || !convFromSelect || !convToSelect) return;
+    const fromSym = convFromSelect.value;
+    const toSym = convToSelect.value;
+    const rawAmt = parseFloat(convAmount.value.replace(/[^\d.]/g, '')) || 0;
+
+    if (convSendSym) convSendSym.textContent = fromSym;
+    if (convRecSym) convRecSym.textContent = toSym;
+
+    const fromRateUSD = getRateInUSD(fromSym);
+    const toRateUSD = getRateInUSD(toSym);
+
+    // Converted value
+    const valInUSD = rawAmt * fromRateUSD;
+    const targetVal = toRateUSD > 0 ? (valInUSD / toRateUSD) : 0;
+    const isCryptoTarget = Boolean(COINS[toSym]);
+    const dp = isCryptoTarget ? (targetVal >= 10 ? 4 : 6) : 2;
+
+    const formattedTarget = isCryptoTarget
+      ? targetVal.toLocaleString('en-IN', { minimumFractionDigits: dp, maximumFractionDigits: dp }) + ' ' + toSym
+      : (toSym === 'INR' ? rupee(targetVal, 2) : targetVal.toLocaleString('en-IN', { style: 'currency', currency: toSym }));
+
+    if (convReceiveVal) convReceiveVal.value = formattedTarget;
+    if (convOutPrimary) convOutPrimary.textContent = formattedTarget;
+
+    // Exchange rate display
+    const singleUnitTarget = toRateUSD > 0 ? (fromRateUSD / toRateUSD) : 0;
+    const rateFormat = isCryptoTarget ? singleUnitTarget.toFixed(dp) + ' ' + toSym : (toSym === 'INR' ? rupee(singleUnitTarget) : singleUnitTarget.toFixed(2) + ' ' + toSym);
+    if (convExchangeRateDisplay) {
+      convExchangeRateDisplay.textContent = `1 ${fromSym} ≈ ${rateFormat}`;
+    }
+
+    // Fee breakdown (0.1% PandoSoft flat fee)
+    const targetValueINR = valInUSD * (usdtInrRate || 89.5);
+    const feeINR = targetValueINR * 0.001;
+    const isCryptoToINR = Boolean(COINS[fromSym]) && toSym === 'INR';
+    const tdsINR = isCryptoToINR ? (targetValueINR * 0.01) : 0;
+    const netINR = Math.max(0, targetValueINR - feeINR - tdsINR);
+
+    if (convFeeDisplay) convFeeDisplay.textContent = rupee(feeINR);
+    if (convTdsDisplay) convTdsDisplay.textContent = isCryptoToINR ? rupee(tdsINR) : '₹0.00 (N/A)';
+    if (convNetDisplay) convNetDisplay.textContent = toSym === 'INR' ? rupee(netINR) : formattedTarget;
+  }
+
+  if (convAmount) {
+    on(convAmount, 'input', runFullConverter);
+    on(convFromSelect, 'change', runFullConverter);
+    on(convToSelect, 'change', runFullConverter);
+  }
+
+  if (convSwapFull) {
+    on(convSwapFull, 'click', () => {
+      const temp = convFromSelect.value;
+      convFromSelect.value = convToSelect.value;
+      convToSelect.value = temp;
+      runFullConverter();
+    });
+  }
+
+  $$('#convQuickChips button').forEach((btn) => {
+    on(btn, 'click', () => {
+      if (convAmount) {
+        convAmount.value = btn.dataset.camt;
+        runFullConverter();
+      }
+    });
+  });
+
+  // 3. Crypto Market Heatmap
+  const heatmapGrid = $('#heatmapGrid');
+  let currentHmFilter = 'all';
+
+  const HM_CLASSES = {
+    BTC: 'hm-tile--btc', ETH: 'hm-tile--eth', SOL: 'hm-tile--sol', BNB: 'hm-tile--bnb',
+    XRP: 'hm-tile--xrp', DOGE: 'hm-tile--doge', ADA: 'hm-tile--ada', LINK: 'hm-tile--link',
+    AVAX: 'hm-tile--avax', SUI: 'hm-tile--sui', DOT: 'hm-tile--dot', HBAR: 'hm-tile--hbar',
+    APT: 'hm-tile--apt', POL: 'hm-tile--pol',
+  };
+
+  function getHeatmapBg(chg) {
+    if (chg >= 0) {
+      const intensity = clamp(0.3 + (chg / 8) * 0.55, 0.3, 0.88);
+      return `rgba(0, 184, 124, ${intensity})`;
+    } else {
+      const intensity = clamp(0.3 + (Math.abs(chg) / 8) * 0.55, 0.3, 0.88);
+      return `rgba(235, 59, 90, ${intensity})`;
+    }
+  }
+
+  function renderHeatmap() {
+    if (!heatmapGrid) return;
+    const keys = Object.keys(COINS);
+    heatmapGrid.innerHTML = keys.map((k) => {
+      const c = COINS[k];
+      const isGainer = c.chg >= 0;
+      const hide = (currentHmFilter === 'gainers' && !isGainer) || (currentHmFilter === 'losers' && isGainer);
+      const spanClass = HM_CLASSES[k] || 'hm-tile--ada';
+      const bg = getHeatmapBg(c.chg);
+
+      return `
+        <div class="hm-tile ${spanClass}" data-hmkey="${k}" style="background:${bg}; display:${hide ? 'none' : 'flex'};">
+          <div class="hm-tile-top">
+            <div>
+              <span class="hm-tile-sym">${k}</span>
+              <span class="hm-tile-name">${c.name}</span>
+            </div>
+            <span class="hm-tile-chg">${pct(c.chg)}</span>
+          </div>
+          <div class="hm-tile-bottom">
+            <span class="hm-tile-price">${rupee(c.price, c.dp)}</span>
+            <span class="hm-tile-vol">Vol ₹${c.vol}Cr</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    $$('.hm-tile', heatmapGrid).forEach((tile) => {
+      on(tile, 'click', () => {
+        const k = tile.dataset.hmkey;
+        selectPair(k);
+        if (pnlCoinSelect) {
+          pnlCoinSelect.value = k;
+          calcPnl();
+        }
+        toast(`${COINS[k].name} selected across terminal and calculators!`);
+      });
+    });
+  }
+
+  function updateHeatmapTile(k) {
+    if (!heatmapGrid) return;
+    const tile = $(`.hm-tile[data-hmkey="${k}"]`, heatmapGrid);
+    if (!tile) return;
+    const c = COINS[k];
+    tile.style.background = getHeatmapBg(c.chg);
+    const chgEl = $('.hm-tile-chg', tile);
+    const priceEl = $('.hm-tile-price', tile);
+    if (chgEl) chgEl.textContent = pct(c.chg);
+    if (priceEl) priceEl.textContent = rupee(c.price, c.dp);
+  }
+
+  const hmFilterSeg = $('#heatmapFilterSeg');
+  if (hmFilterSeg) {
+    segmented(hmFilterSeg, (btn) => {
+      currentHmFilter = btn.dataset.hm;
+      renderHeatmap();
+    });
+  }
+
+  // 4. Profit / Loss Calculator
+  const pnlCoinSelect = $('#pnlCoinSelect');
+  const pnlInvestment = $('#pnlInvestment');
+  const pnlBuyPrice = $('#pnlBuyPrice');
+  const pnlSellPrice = $('#pnlSellPrice');
+  const pnlUseLiveBuy = $('#pnlUseLiveBuy');
+  const pnlCoinQtyLabel = $('#pnlCoinQtyLabel');
+  const pnlHlBox = $('#pnlHlBox');
+  const pnlRoiBadge = $('#pnlRoiBadge');
+  const pnlNetProfitDisplay = $('#pnlNetProfitDisplay');
+  const pnlRoiDisplay = $('#pnlRoiDisplay');
+  const pnlExitValDisplay = $('#pnlExitValDisplay');
+  const pnlGrossProfitDisplay = $('#pnlGrossProfitDisplay');
+  const pnlFeesDisplay = $('#pnlFeesDisplay');
+  const pnlTdsDisplay = $('#pnlTdsDisplay');
+  const pnlTotalInHand = $('#pnlTotalInHand');
+
+  function calcPnl() {
+    if (!pnlInvestment || !pnlBuyPrice || !pnlSellPrice) return;
+    const coin = pnlCoinSelect ? pnlCoinSelect.value : 'BTC';
+    const inv = parseFloat(pnlInvestment.value.replace(/[^\d.]/g, '')) || 0;
+    const buy = parseFloat(pnlBuyPrice.value.replace(/[^\d.]/g, '')) || 1;
+    const sell = parseFloat(pnlSellPrice.value.replace(/[^\d.]/g, '')) || 0;
+
+    const units = buy > 0 ? (inv / buy) : 0;
+    if (pnlCoinQtyLabel) {
+      pnlCoinQtyLabel.textContent = `${units.toFixed(6)} ${coin}`;
+    }
+
+    const exitVal = units * sell;
+    const grossPnl = exitVal - inv;
+    const fees = (inv * 0.001) + (exitVal * 0.001); // 0.1% buy + 0.1% sell
+    const tds = exitVal * 0.01; // 1% TDS on sell consideration
+    const netPnl = grossPnl - fees - tds;
+    const roi = inv > 0 ? (netPnl / inv) * 100 : 0;
+    const isProfit = netPnl >= 0;
+
+    if (pnlHlBox) {
+      pnlHlBox.classList.toggle('is-profit', isProfit);
+      pnlHlBox.classList.toggle('is-loss', !isProfit);
+    }
+    if (pnlRoiBadge) {
+      pnlRoiBadge.textContent = (isProfit ? '+' : '') + roi.toFixed(2) + '% ROI';
+      pnlRoiBadge.style.color = isProfit ? 'var(--green-700)' : '#eb3b5a';
+    }
+    if (pnlNetProfitDisplay) {
+      pnlNetProfitDisplay.textContent = (isProfit ? '+ ' : '− ') + rupee(Math.abs(netPnl));
+    }
+    if (pnlRoiDisplay) {
+      pnlRoiDisplay.textContent = `${(isProfit ? '+' : '')}${roi.toFixed(2)}% Net Return on Capital`;
+    }
+    if (pnlExitValDisplay) pnlExitValDisplay.textContent = rupee(exitVal);
+    if (pnlGrossProfitDisplay) pnlGrossProfitDisplay.textContent = (grossPnl >= 0 ? '+' : '−') + rupee(Math.abs(grossPnl));
+    if (pnlFeesDisplay) pnlFeesDisplay.textContent = rupee(fees);
+    if (pnlTdsDisplay) pnlTdsDisplay.textContent = rupee(tds);
+    if (pnlTotalInHand) pnlTotalInHand.textContent = rupee(Math.max(0, exitVal - fees - tds));
+  }
+
+  if (pnlCoinSelect) {
+    on(pnlCoinSelect, 'change', () => {
+      const k = pnlCoinSelect.value;
+      if (COINS[k] && pnlBuyPrice) {
+        pnlBuyPrice.value = inr(COINS[k].price, 0);
+        if (pnlSellPrice) pnlSellPrice.value = inr(COINS[k].price * 1.15, 0);
+      }
+      calcPnl();
+    });
+  }
+  if (pnlUseLiveBuy) {
+    on(pnlUseLiveBuy, 'click', () => {
+      const k = pnlCoinSelect ? pnlCoinSelect.value : 'BTC';
+      if (COINS[k] && pnlBuyPrice) {
+        pnlBuyPrice.value = inr(COINS[k].price, 0);
+        calcPnl();
+        toast(`Loaded live ${COINS[k].name} price: ${rupee(COINS[k].price)}`);
+      }
+    });
+  }
+  on(pnlInvestment, 'input', calcPnl);
+  on(pnlBuyPrice, 'input', calcPnl);
+  on(pnlSellPrice, 'input', calcPnl);
+
+  $$('#pnlPresets button').forEach((btn) => {
+    on(btn, 'click', () => {
+      const pctAdd = parseFloat(btn.dataset.target) || 0;
+      const buy = parseFloat(pnlBuyPrice.value.replace(/[^\d.]/g, '')) || 0;
+      if (pnlSellPrice && buy > 0) {
+        pnlSellPrice.value = inr(buy * (1 + pctAdd / 100), 0);
+        calcPnl();
+      }
+    });
+  });
+
+  // 5. Crypto SIP Calculator
+  const sipMonthlyAmt = $('#sipMonthlyAmt');
+  const sipMonthlySlider = $('#sipMonthlySlider');
+  const sipMonthlyLabel = $('#sipMonthlyLabel');
+  const sipPeriodLabel = $('#sipPeriodLabel');
+  const sipDurationSeg = $('#sipDurationSeg');
+  const sipCagrSlider = $('#sipCagrSlider');
+  const sipCagrLabel = $('#sipCagrLabel');
+  const sipCoinSelect = $('#sipCoinSelect');
+  const sipTotalValueDisplay = $('#sipTotalValueDisplay');
+  const sipWealthGainDisplay = $('#sipWealthGainDisplay');
+  const sipBarInvested = $('#sipBarInvested');
+  const sipBarReturns = $('#sipBarReturns');
+  const sipLegendInvested = $('#sipLegendInvested');
+  const sipLegendReturns = $('#sipLegendReturns');
+  const sipInvestedDisplay = $('#sipInvestedDisplay');
+  const sipReturnsDisplay = $('#sipReturnsDisplay');
+  const sipCoinsAccumulated = $('#sipCoinsAccumulated');
+  const sipMaturityDisplay = $('#sipMaturityDisplay');
+
+  let sipMonths = 36;
+
+  function calcSip() {
+    if (!sipMonthlyAmt || !sipCagrSlider) return;
+    const P = parseFloat(sipMonthlyAmt.value.replace(/[^\d.]/g, '')) || 0;
+    const cagr = parseFloat(sipCagrSlider.value) || 45;
+    const n = sipMonths;
+    const r = (cagr / 100) / 12; // monthly rate
+
+    // Standard SIP compound formula: M = P * [((1 + r)^n - 1) / r] * (1 + r)
+    const maturity = r > 0 ? (P * ((Math.pow(1 + r, n) - 1) / r) * (1 + r)) : (P * n);
+    const invested = P * n;
+    const returns = Math.max(0, maturity - invested);
+
+    if (sipMonthlyLabel) sipMonthlyLabel.textContent = rupee(P, 0) + ' / mo';
+    if (sipCagrLabel) sipCagrLabel.textContent = cagr + '% per annum';
+
+    if (sipTotalValueDisplay) sipTotalValueDisplay.textContent = rupee(maturity, 0);
+    if (sipWealthGainDisplay) sipWealthGainDisplay.textContent = '+ ' + rupee(returns, 0) + ' Total Returns';
+    if (sipInvestedDisplay) sipInvestedDisplay.textContent = rupee(invested, 0);
+    if (sipReturnsDisplay) sipReturnsDisplay.textContent = rupee(returns, 0);
+    if (sipMaturityDisplay) sipMaturityDisplay.textContent = rupee(maturity, 0);
+    if (sipLegendInvested) sipLegendInvested.textContent = rupee(invested, 0);
+    if (sipLegendReturns) sipLegendReturns.textContent = rupee(returns, 0);
+
+    const invPct = maturity > 0 ? clamp((invested / maturity) * 100, 5, 95) : 50;
+    const retPct = 100 - invPct;
+    if (sipBarInvested) sipBarInvested.style.width = invPct.toFixed(1) + '%';
+    if (sipBarReturns) sipBarReturns.style.width = retPct.toFixed(1) + '%';
+
+    // Coins accumulated
+    const coin = sipCoinSelect ? sipCoinSelect.value : 'BTC';
+    if (sipCoinsAccumulated) {
+      if (coin === 'BASKET') {
+        sipCoinsAccumulated.textContent = `Balanced Basket Portfolio`;
+      } else if (COINS[coin] && COINS[coin].price > 0) {
+        const approxCoins = maturity / COINS[coin].price;
+        sipCoinsAccumulated.textContent = `~${approxCoins.toFixed(4)} ${coin}`;
+      }
+    }
+  }
+
+  if (sipMonthlyAmt && sipMonthlySlider) {
+    on(sipMonthlySlider, 'input', () => {
+      sipMonthlyAmt.value = inr(parseFloat(sipMonthlySlider.value), 0);
+      calcSip();
+    });
+    on(sipMonthlyAmt, 'input', () => {
+      const v = parseFloat(sipMonthlyAmt.value.replace(/[^\d.]/g, '')) || 0;
+      sipMonthlySlider.value = clamp(v, 500, 100000);
+      calcSip();
+    });
+  }
+
+  if (sipDurationSeg) {
+    segmented(sipDurationSeg, (btn) => {
+      sipMonths = parseInt(btn.dataset.months, 10) || 36;
+      if (sipPeriodLabel) {
+        const yrs = sipMonths >= 12 ? `${sipMonths / 12} Years (${sipMonths} Months)` : `${sipMonths} Months`;
+        sipPeriodLabel.textContent = yrs;
+      }
+      calcSip();
+    });
+  }
+
+  if (sipCagrSlider) {
+    on(sipCagrSlider, 'input', calcSip);
+  }
+
+  $$('#sipPresets button').forEach((btn) => {
+    on(btn, 'click', () => {
+      if (sipCagrSlider) {
+        sipCagrSlider.value = btn.dataset.cagr;
+        calcSip();
+      }
+    });
+  });
+
+  if (sipCoinSelect) on(sipCoinSelect, 'change', calcSip);
+
+  // 6. Indian Crypto Tax & TDS Calculator
+  const taxBuyCost = $('#taxBuyCost');
+  const taxSellProceeds = $('#taxSellProceeds');
+  const taxPlatformSeg = $('#taxPlatformSeg');
+  const taxTotalLiabilityDisplay = $('#taxTotalLiabilityDisplay');
+  const taxGainDisplay = $('#taxGainDisplay');
+  const taxNetGainDisplay = $('#taxNetGainDisplay');
+  const taxFlat30Display = $('#taxFlat30Display');
+  const taxCessDisplay = $('#taxCessDisplay');
+  const taxTdsDeductedDisplay = $('#taxTdsDeductedDisplay');
+  const taxFinalPayableDisplay = $('#taxFinalPayableDisplay');
+  const taxTakeHomeDisplay = $('#taxTakeHomeDisplay');
+
+  let taxPlatform = 'fiu';
+
+  function calcIndianTax() {
+    if (!taxBuyCost || !taxSellProceeds) return;
+    const cost = parseFloat(taxBuyCost.value.replace(/[^\d.]/g, '')) || 0;
+    const sale = parseFloat(taxSellProceeds.value.replace(/[^\d.]/g, '')) || 0;
+
+    const netGain = Math.max(0, sale - cost);
+    const tax30 = netGain * 0.30; // Flat 30% under Sec 115BBH
+    const cess = tax30 * 0.04;    // 4% Health & Education Cess
+    const totalTax = tax30 + cess; // Effective 31.2%
+
+    const tds = sale * 0.01; // 1% TDS under Sec 194S
+    const finalPayable = Math.max(0, totalTax - tds);
+    const takeHome = Math.max(0, sale - totalTax);
+
+    if (taxGainDisplay) taxGainDisplay.textContent = `Based on ${rupee(netGain)} Net Capital Gains`;
+    if (taxTotalLiabilityDisplay) taxTotalLiabilityDisplay.textContent = rupee(totalTax);
+    if (taxNetGainDisplay) taxNetGainDisplay.textContent = rupee(netGain);
+    if (taxFlat30Display) taxFlat30Display.textContent = rupee(tax30);
+    if (taxCessDisplay) taxCessDisplay.textContent = rupee(cess);
+    if (taxTdsDeductedDisplay) {
+      taxTdsDeductedDisplay.textContent = `− ${rupee(tds)}` + (taxPlatform === 'fiu' ? ' (Auto-filed by PandoSoft)' : ' (Self-deposit required)');
+    }
+    if (taxFinalPayableDisplay) taxFinalPayableDisplay.textContent = rupee(finalPayable);
+    if (taxTakeHomeDisplay) taxTakeHomeDisplay.textContent = rupee(takeHome);
+  }
+
+  on(taxBuyCost, 'input', calcIndianTax);
+  on(taxSellProceeds, 'input', calcIndianTax);
+
+  if (taxPlatformSeg) {
+    segmented(taxPlatformSeg, (btn) => {
+      taxPlatform = btn.dataset.plat;
+      calcIndianTax();
+    });
+  }
+
+  // Initial runs for all tools
+  runFullConverter();
+  renderHeatmap();
+  calcPnl();
+  calcSip();
+  calcIndianTax();
 
   /* ── initial paint ─────────────────────────────────────────────────────── */
   selectPair('BTC');
