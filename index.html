@@ -205,6 +205,110 @@
   </div>
 </section>
 
+<!-- ══════════ LIVE OTC RATES & ORDER BOOK ══════════ -->
+<section class="section section--rates" id="live-rates" aria-label="Live Indicative Digital Asset Rates and OTC Order Book">
+  <div class="wrap">
+    <div class="rates-header">
+      <div class="rates-header__left">
+        <span class="rates-pulse-badge">
+          <span class="pulse-dot"></span>
+          Live Indicative Rates
+        </span>
+        <h2 class="rates-title">Real-Time Reference Rates &amp; Order Book</h2>
+        <p class="rates-subtitle">
+          Real-time institutional benchmarks powered by CoinGecko with indicative multi-channel OTC depth across our liquidity partners.
+        </p>
+      </div>
+      <div class="rates-header__controls">
+        <div class="currency-toggle" role="group" aria-label="Currency Selector">
+          <button type="button" class="currency-btn is-active" data-currency="inr">₹ INR</button>
+          <button type="button" class="currency-btn" data-currency="usd">₮ USDT</button>
+        </div>
+        <div class="rates-refresh-wrap">
+          <span class="refresh-countdown" id="ratesCountdown" title="Auto-refreshes every 60 seconds">60s</span>
+          <button type="button" class="rates-refresh-btn" id="ratesRefreshBtn" aria-label="Refresh rates now" title="Refresh rates now">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="rates-grid">
+      <!-- Left: Coin Rates Table Card -->
+      <div class="rates-card rates-table-card">
+        <div class="rates-card__head">
+          <div class="rates-card__title-group">
+            <h3 class="rates-card__title">Major Digital Assets</h3>
+            <span class="rates-card__tag">CoinGecko Feed</span>
+          </div>
+          <span class="rates-card__note">Click any coin to view indicative order book</span>
+        </div>
+        <div class="rates-table-wrap">
+          <table class="rates-table" id="ratesTable">
+            <thead>
+              <tr>
+                <th scope="col">Asset</th>
+                <th scope="col" class="text-right">Price</th>
+                <th scope="col" class="text-right">24h Change</th>
+                <th scope="col" class="text-right">Market Cap</th>
+              </tr>
+            </thead>
+            <tbody id="ratesTableBody">
+              <!-- Dynamically populated via script.js -->
+            </tbody>
+          </table>
+        </div>
+        <div class="rates-card__footer">
+          <span class="rates-footnote">*Indicative rates auto-refresh every 60 seconds. Final execution pricing confirmed inside the onboarding portal.</span>
+        </div>
+      </div>
+
+      <!-- Right: Live OTC Order Book Card -->
+      <div class="rates-card orderbook-card">
+        <div class="rates-card__head">
+          <div class="rates-card__title-group">
+            <h3 class="rates-card__title" id="orderbookTitle">Indicative OTC Order Book</h3>
+            <span class="rates-card__tag rates-card__tag--accent" id="orderbookPairTag">USDT / INR</span>
+          </div>
+          <span class="orderbook-spread" id="orderbookSpread">Spread: ~0.10%</span>
+        </div>
+
+        <div class="orderbook-body">
+          <div class="orderbook-cols-head">
+            <span>Price (<span class="orderbook-curr-label">INR</span>)</span>
+            <span class="text-right">Size</span>
+            <span class="text-right">Depth</span>
+          </div>
+
+          <!-- Asks (Sells) -->
+          <div class="orderbook-list orderbook-list--asks" id="orderbookAsks" aria-label="Ask orders (Sells)">
+            <!-- Populated via script.js -->
+          </div>
+
+          <!-- Mid Reference Price -->
+          <div class="orderbook-mid" id="orderbookMid">
+            <div class="orderbook-mid__price-wrap">
+              <span class="orderbook-mid__dot"></span>
+              <span class="orderbook-mid__price" id="orderbookMidPrice">₹91.45</span>
+              <span class="orderbook-mid__label">Mid OTC Benchmark</span>
+            </div>
+            <span class="orderbook-mid__status">Deep Liquidity</span>
+          </div>
+
+          <!-- Bids (Buys) -->
+          <div class="orderbook-list orderbook-list--bids" id="orderbookBids" aria-label="Bid orders (Buys)">
+            <!-- Populated via script.js -->
+          </div>
+        </div>
+
+        <div class="orderbook-footer">
+          <span class="orderbook-caption">Aggregated indicative OTC liquidity depth across CoinSwitch, Pi42 &amp; BigDelta.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ══════════ OTC ECOSYSTEM & PARTNERS ══════════ -->
 <section class="partners-bar" aria-label="Provider relationships and technology partner">
   <div class="wrap">
@@ -315,6 +419,219 @@
           <strong>Service availability:</strong> Supported assets, networks, minimum amounts, transaction limits and timelines are confirmed for each request. We do not guarantee that every enquiry can be accepted or executed.
         </p>
         <a class="btn btn--primary btn--sm" href="#contact">Discuss Your Requirement</a>
+      </div>
+    </div>
+
+    <!-- ══════════ LIVE USDT/INR CHART, ORDER BOOK & BUY/SELL DESK ══════════ -->
+    <div class="usdt-terminal" id="usdt-terminal">
+      <div class="usdt-terminal__header">
+        <div class="usdt-terminal__pair">
+          <div class="usdt-terminal__icons">
+            <img src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT" class="usdt-terminal__logo" />
+            <span class="usdt-terminal__badge-inr">₹</span>
+          </div>
+          <div>
+            <div class="usdt-terminal__title-row">
+              <h3 class="usdt-terminal__title">USDT / INR Live OTC Desk</h3>
+              <span class="terminal-badge terminal-badge--live"><span class="pulse-dot"></span> Live Market</span>
+              <span class="terminal-badge terminal-badge--chain">TRC20 &bull; ERC20 &bull; BEP20</span>
+            </div>
+            <p class="usdt-terminal__sub">Assisted Corporate Desk &bull; Non-Custodial INR Settlement &bull; Real-time CoinGecko Reference</p>
+          </div>
+        </div>
+
+        <div class="usdt-terminal__metrics">
+          <div class="term-metric">
+            <span class="term-metric__label">Indicative Mid Rate</span>
+            <span class="term-metric__val term-metric__val--price" id="tMidRate">₹91.48</span>
+          </div>
+          <div class="term-metric">
+            <span class="term-metric__label">24h Change</span>
+            <span class="term-metric__val term-metric__val--green" id="tRateChange">+0.12%</span>
+          </div>
+          <div class="term-metric term-metric--hide-sm">
+            <span class="term-metric__label">24h High</span>
+            <span class="term-metric__val" id="tHighRate">₹91.95</span>
+          </div>
+          <div class="term-metric term-metric--hide-sm">
+            <span class="term-metric__label">24h Low</span>
+            <span class="term-metric__val" id="tLowRate">₹90.92</span>
+          </div>
+          <div class="term-metric term-metric--hide-sm">
+            <span class="term-metric__label">24h Est. Volume</span>
+            <span class="term-metric__val">₹52.4 Cr</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="usdt-terminal__body">
+        <!-- 1. Live Interactive Price Chart -->
+        <div class="usdt-terminal__col usdt-terminal__col--chart">
+          <div class="panel-header">
+            <div class="panel-header__top">
+              <div class="panel-header__market">
+                <span class="panel-header__title">USDT / INR</span>
+                <span class="panel-header__price" id="chartHoverPrice">₹91.48</span>
+                <span class="panel-header__badge">Live</span>
+              </div>
+              <div class="panel-header__controls">
+                <div class="chart-mode-selector" role="group" aria-label="Chart Style">
+                  <button type="button" class="mode-btn is-active" data-mode="candles" title="Candlestick Chart">🕯️ Candles</button>
+                  <button type="button" class="mode-btn" data-mode="line" title="Line Chart">📈 Line</button>
+                </div>
+                <div class="tf-selector" role="group" aria-label="Chart Timeframe">
+                  <button type="button" class="tf-btn" data-tf="1h">1H</button>
+                  <button type="button" class="tf-btn is-active" data-tf="24h">24H</button>
+                  <button type="button" class="tf-btn" data-tf="7d">7D</button>
+                  <button type="button" class="tf-btn" data-tf="1m">1M</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-header__bottom">
+              <div class="chart-ohlc" id="chartOhlcBar">
+                <span class="ohlc-tag">OHLC:</span>
+                <span class="ohlc-item"><small>O</small> <strong id="ohlcO">91.44</strong></span>
+                <span class="ohlc-item"><small>H</small> <strong id="ohlcH">91.56</strong></span>
+                <span class="ohlc-item"><small>L</small> <strong id="ohlcL">91.38</strong></span>
+                <span class="ohlc-item"><small>C</small> <strong id="ohlcC">91.48</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <canvas id="usdtTerminalChart" width="560" height="260"></canvas>
+            <div class="chart-tooltip" id="chartHoverTooltip" hidden></div>
+          </div>
+
+          <div class="chart-info-bar">
+            <span class="chart-info-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Auto-synced live CoinGecko rates
+            </span>
+            <span class="chart-info-note" id="chartSyncTime">Last tick: 1 sec ago</span>
+          </div>
+        </div>
+
+        <!-- 2. Live Order Book -->
+        <div class="usdt-terminal__col usdt-terminal__col--book">
+          <div class="panel-header">
+            <span class="panel-header__title">Live Order Book</span>
+            <span class="book-spread-pill" id="terminalSpreadBadge">Spread: ~0.08%</span>
+          </div>
+
+          <div class="desk-book">
+            <div class="desk-book__head">
+              <span>Price (₹)</span>
+              <span class="text-right">Size (USDT)</span>
+              <span class="text-right">Total</span>
+            </div>
+
+            <!-- Asks (Sells) -->
+            <div class="desk-book__asks" id="deskAsksList">
+              <!-- Dynamic via JS -->
+            </div>
+
+            <!-- Mid Price -->
+            <div class="desk-book__mid">
+              <div class="desk-book__mid-wrap">
+                <span class="pulse-dot"></span>
+                <span class="desk-book__mid-price" id="deskMidDisplay">₹91.48</span>
+                <span class="desk-book__mid-lbl">Mid Benchmark</span>
+              </div>
+              <span class="desk-book__mid-stat">Deep OTC Depth</span>
+            </div>
+
+            <!-- Bids (Buys) -->
+            <div class="desk-book__bids" id="deskBidsList">
+              <!-- Dynamic via JS -->
+            </div>
+          </div>
+
+          <div class="desk-book__foot">
+            <span>Aggregated across partner institutional liquidity desks</span>
+          </div>
+        </div>
+
+        <!-- 3. Buy & Sell Action Desk -->
+        <div class="usdt-terminal__col usdt-terminal__col--trade">
+          <div class="trade-toggle-bar">
+            <button type="button" class="trade-toggle-btn trade-toggle-btn--buy is-active" id="btnSideBuy">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+              Buy USDT
+            </button>
+            <button type="button" class="trade-toggle-btn trade-toggle-btn--sell" id="btnSideSell">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              Sell USDT
+            </button>
+          </div>
+
+          <div class="trade-calc-wrap">
+            <!-- Field 1 -->
+            <div class="trade-input-block">
+              <div class="trade-input-block__head">
+                <label for="tradeInpPay" id="lblTradePay">You Pay (INR)</label>
+                <span class="trade-input-block__tag">Min: ₹1 Lakh</span>
+              </div>
+              <div class="trade-input-row">
+                <span class="trade-cur-symbol" id="symTradePay">₹</span>
+                <input type="number" id="tradeInpPay" class="trade-num-input" value="500000" step="10000" min="50000" />
+                <span class="trade-cur-code" id="codeTradePay">INR</span>
+              </div>
+            </div>
+
+            <!-- Swap Button -->
+            <div class="trade-swap-row">
+              <button type="button" class="trade-swap-action" id="btnTradeSwap" aria-label="Switch Buy and Sell" title="Switch Buy and Sell">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+              </button>
+            </div>
+
+            <!-- Field 2 -->
+            <div class="trade-input-block">
+              <div class="trade-input-block__head">
+                <label for="tradeInpRec" id="lblTradeRec">You Receive (USDT)</label>
+                <span class="trade-input-block__tag">Approx. Output</span>
+              </div>
+              <div class="trade-input-row">
+                <span class="trade-cur-symbol" id="symTradeRec">₮</span>
+                <input type="text" id="tradeInpRec" class="trade-num-input" value="5,465.67" readonly />
+                <span class="trade-cur-code" id="codeTradeRec">USDT</span>
+              </div>
+            </div>
+
+            <!-- Trade Info Summary -->
+            <div class="trade-summary">
+              <div class="trade-summary-row">
+                <span>Indicative Rate</span>
+                <strong id="deskSummaryRate">1 USDT ≈ ₹91.48</strong>
+              </div>
+              <div class="trade-summary-row">
+                <span>Settlement Route</span>
+                <strong style="color:var(--green-700);">Same-Day NEFT / RTGS</strong>
+              </div>
+              <div class="trade-summary-row">
+                <span>Transaction Type</span>
+                <strong>Non-Custodial Assisted OTC</strong>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="trade-button-group">
+              <button type="button" class="btn btn--trade-main btn--trade-main-buy" id="btnSubmitDeskTrade">
+                <span id="txtDeskTradeAction">Buy USDT with INR</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <a href="https://portal.pandosoftindia.com/onboard" class="btn btn--trade-sub">
+                Start Onboarding &rarr;
+              </a>
+            </div>
+
+            <span class="trade-compliance-note">
+              *Eligible for registered Indian corporate entities &amp; verified introducers. Final quote locked at execution.
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
