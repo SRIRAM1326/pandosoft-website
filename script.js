@@ -157,6 +157,25 @@
     });
   });
 
+  /* ── Scroll Reveal Animations ── */
+  const revealElements = $$('.reveal');
+  if ('IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px 40px 0px' }
+    );
+    revealElements.forEach((el) => revealObserver.observe(el));
+  } else {
+    revealElements.forEach((el) => el.classList.add('is-in'));
+  }
+
   /* ── Subtle Magnetic Buttons (Desktop) ── */
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!prefersReducedMotion && window.innerWidth > 900) {
@@ -241,6 +260,76 @@
     });
   }
 
-  // Remove scratch file if present
+  /* ── Dedicated Referral Partner Application Form Handling ── */
+  const referralForm = $('#referralAppForm');
+  const refAlert = $('#refFormAlert');
+  const refSubmitBtn = $('#refSubmitBtn');
+
+  if (referralForm) {
+    on(referralForm, 'submit', (e) => {
+      e.preventDefault();
+
+      const name = ($('#refName') && $('#refName').value.trim()) || '';
+      const email = ($('#refEmail') && $('#refEmail').value.trim()) || '';
+      const phone = ($('#refPhone') && $('#refPhone').value.trim()) || '';
+      const location = ($('#refLocation') && $('#refLocation').value.trim()) || '';
+      const occupation = ($('#refOccupation') && $('#refOccupation').value.trim()) || '';
+      const bizTypes = ($('#refBizTypes') && $('#refBizTypes').value) || '';
+      const introPlan = ($('#refIntroPlan') && $('#refIntroPlan').value.trim()) || '';
+      const privacy = $('#refPrivacy') && $('#refPrivacy').checked;
+      const terms = $('#refTerms') && $('#refTerms').checked;
+
+      // Validate required fields
+      if (!name || !email || !phone || !location || !occupation || !bizTypes || !introPlan || !privacy || !terms) {
+        if (refAlert) {
+          refAlert.className = 'form-alert form-alert--error';
+          refAlert.hidden = false;
+          refAlert.textContent = 'Please complete all required fields and confirm the Privacy and Program acknowledgements.';
+        }
+        return;
+      }
+
+      // Email format check
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        if (refAlert) {
+          refAlert.className = 'form-alert form-alert--error';
+          refAlert.hidden = false;
+          refAlert.textContent = 'Please provide a valid professional email address.';
+        }
+        return;
+      }
+
+      // Submission state
+      if (refSubmitBtn) {
+        refSubmitBtn.disabled = true;
+        refSubmitBtn.dataset.originalHtml = refSubmitBtn.innerHTML;
+        refSubmitBtn.textContent = 'Submitting Partner Application...';
+      }
+
+      // Simulate secure processing / Supabase Edge dispatch
+      setTimeout(() => {
+        if (refAlert) {
+          refAlert.className = 'form-alert form-alert--success';
+          refAlert.hidden = false;
+          refAlert.textContent = 'Thank you. Your Referral Partner application has been received. Our team will contact you after review. Submitting an application does not activate a partnership or commission entitlement.';
+        }
+
+        toast('Thank you. Your Referral Partner application has been received.', 'success', 5000);
+        referralForm.reset();
+
+        if (refSubmitBtn) {
+          refSubmitBtn.disabled = false;
+          refSubmitBtn.innerHTML = refSubmitBtn.dataset.originalHtml || 'Submit Partner Application';
+        }
+
+        // Scroll so alert is clearly visible
+        if (refAlert) {
+          refAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 700);
+    });
+  }
+
   console.log('PANDOSOFT INDIA — OTC website client initialized.');
 })();
