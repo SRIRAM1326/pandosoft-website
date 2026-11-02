@@ -14,20 +14,20 @@
 
   /* ── market snapshot ───────────────────────────────────────────────────── */
   const COINS = {
-    BTC:  { name: 'Bitcoin',   sym: '₿', price: 8377600, chg:  2.14, vol: 4182, dp: 0 },
-    ETH:  { name: 'Ethereum',  sym: 'Ξ', price: 279840,  chg:  1.28, vol: 2140, dp: 2 },
-    SOL:  { name: 'Solana',    sym: '◎', price: 15699,   chg:  4.62, vol: 986,  dp: 2 },
-    BNB:  { name: 'BNB',       sym: 'B', price: 56505,   chg: -0.87, vol: 512,  dp: 2 },
-    XRP:  { name: 'XRP',       sym: 'X', price: 205.92,  chg:  0.42, vol: 743,  dp: 2 },
-    ADA:  { name: 'Cardano',   sym: 'A', price: 69.52,   chg: -1.95, vol: 188,  dp: 2 },
-    DOGE: { name: 'Dogecoin',  sym: 'Ð', price: 16.72,   chg:  6.31, vol: 421,  dp: 2 },
-    LINK: { name: 'Chainlink', sym: '⬡', price: 1900.80, chg:  2.05, vol: 163,  dp: 2 },
-    AVAX: { name: 'Avalanche', sym: '▲', price: 2499.20, chg: -2.44, vol: 131,  dp: 2 },
-    DOT:  { name: 'Polkadot',  sym: '●', price: 519.20,  chg:  0.68, vol: 78,   dp: 2 },
-    SUI:  { name: 'Sui',       sym: 'S', price: 288.64,  chg:  3.11, vol: 96,   dp: 2 },
-    HBAR: { name: 'Hedera',    sym: 'ℏ', price: 18.48,   chg: -0.55, vol: 54,   dp: 2 },
-    APT:  { name: 'Aptos',     sym: 'A', price: 712.80,  chg:  1.72, vol: 41,   dp: 2 },
-    POL:  { name: 'Polygon',   sym: 'P', price: 29.92,   chg: -3.08, vol: 63,   dp: 2 },
+    BTC:  { name: 'Bitcoin',   sym: '₿', price: 7436770, chg:  0.76, vol: 4182, dp: 0 },
+    ETH:  { name: 'Ethereum',  sym: 'Ξ', price: 217384,  chg:  1.05, vol: 2140, dp: 2 },
+    SOL:  { name: 'Solana',    sym: '◎', price: 8998,    chg: -0.73, vol: 986,  dp: 2 },
+    BNB:  { name: 'BNB',       sym: 'B', price: 67439,   chg:  0.82, vol: 512,  dp: 2 },
+    XRP:  { name: 'XRP',       sym: 'X', price: 118.86,  chg:  0.12, vol: 743,  dp: 2 },
+    ADA:  { name: 'Cardano',   sym: 'A', price: 18.26,   chg: -0.34, vol: 188,  dp: 2 },
+    DOGE: { name: 'Dogecoin',  sym: 'Ð', price: 7.19,    chg:  0.14, vol: 421,  dp: 2 },
+    LINK: { name: 'Chainlink', sym: '⬡', price: 1075.80, chg: -2.38, vol: 163,  dp: 2 },
+    AVAX: { name: 'Avalanche', sym: '▲', price: 820.10,  chg: -1.52, vol: 131,  dp: 2 },
+    DOT:  { name: 'Polkadot',  sym: '●', price: 90.60,   chg:  0.77, vol: 78,   dp: 2 },
+    SUI:  { name: 'Sui',       sym: 'S', price: 85.26,   chg: -0.54, vol: 96,   dp: 2 },
+    HBAR: { name: 'Hedera',    sym: 'ℏ', price: 6.78,    chg: -0.96, vol: 54,   dp: 2 },
+    APT:  { name: 'Aptos',     sym: 'A', price: 60.06,   chg: -0.88, vol: 41,   dp: 2 },
+    POL:  { name: 'Polygon',   sym: 'P', price: 8.56,    chg: -2.58, vol: 63,   dp: 2 },
   };
   const KEYS = Object.keys(COINS);
   Object.entries(COINS).forEach(([k, c]) => { c.key = k; });
@@ -938,83 +938,6 @@
   }
   renderBook();
 
-  /* ── live simulation ───────────────────────────────────────────────────── */
-  function jitter() {
-    KEYS.forEach((k) => {
-      const c = COINS[k];
-      const drift = (Math.random() - 0.5) * 0.0016;
-      c.price = Math.max(0.01, c.price * (1 + drift));
-      c.chg = round(clamp(c.chg + drift * 100 * 0.6, -18, 18), 2);
-    });
-
-    /* ticker values */
-    $$('[data-tk]').forEach((el) => {
-      const k = el.dataset.tk;
-      const kind = el.dataset.kind;
-      const c = COINS[k];
-      if (kind === 'price') el.textContent = rupee(c.price, c.dp);
-      if (kind === 'chg') {
-        el.textContent = pct(c.chg);
-        el.className = c.chg >= 0 ? 'up' : 'down';
-      }
-    });
-
-    /* table */
-    $$('[data-price]').forEach((el) => {
-      const k = el.dataset.price;
-      const c = COINS[k];
-      if (!c) return;
-      const next = rupee(c.price, c.dp);
-      if (el.textContent === next) return;
-      el.textContent = next;
-      el.animate?.(
-        [{ backgroundColor: c.chg >= 0 ? 'rgba(0,184,124,.16)' : 'rgba(19,85,245,.16)' }, { backgroundColor: 'transparent' }],
-        { duration: 800, easing: 'ease-out' }
-      );
-    });
-    $$('[data-chg-pill]').forEach((el) => {
-      const c = COINS[el.dataset.chgPill];
-      el.textContent = pct(c.chg);
-      el.className = 'chg ' + (c.chg >= 0 ? 'up' : 'down');
-    });
-    $$('[data-chg]').forEach((el) => {
-      const c = COINS[el.dataset.chg];
-      if (!c) return;
-      el.textContent = pct(c.chg);
-      el.className = 'chg ' + (c.chg >= 0 ? 'up' : 'down');
-    });
-
-    /* hero price + stamp */
-    const btc = COINS.BTC;
-    if (heroPrice) {
-      heroPrice.classList.remove('flash-up', 'flash-down');
-      void heroPrice.offsetWidth;
-      heroPrice.classList.add(btc.chg >= 0 ? 'flash-up' : 'flash-down');
-      clearTimeout(heroPrice._flash);
-      heroPrice._flash = setTimeout(() => heroPrice.classList.remove('flash-up', 'flash-down'), 700);
-    }
-    const stamp = $('#chartStamp');
-    if (stamp) {
-      stamp.textContent = 'Updated ' + new Date().toLocaleTimeString('en-IN', {
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-      }) + ' IST';
-    }
-    $$('[data-hl]').forEach((el) => {
-      const h = btc.price * (el.dataset.hl === 'high' ? 1.0042 : 0.9938);
-      el.textContent = rupee(h, 0);
-    });
-
-    /* converter + order book follow the live snapshot */
-    if (convRate) convRate.textContent = `1 ${conv.coin} = ${rupee(COINS[conv.coin].price, COINS[conv.coin].dp)}`;
-    if (convTo && document.activeElement !== convTo) convCalc('from');
-    renderBook();
-    if (document.activeElement !== amountInput) recalc();
-  }
-  if (!reduceMotion) {
-    setInterval(jitter, 2400);
-    setTimeout(jitter, 900);
-  }
-
   /* ── ticker build ──────────────────────────────────────────────────────── */
   const tickerTrack = $('#tickerTrack');
   if (tickerTrack) {
@@ -1024,6 +947,248 @@
       return `<span class="tk"><b>${k}</b><small>/INR</small><span data-tk="${k}" data-kind="price">${rupee(c.price, c.dp)}</span><span class="${c.chg >= 0 ? 'up' : 'down'}" data-tk="${k}" data-kind="chg">${pct(c.chg)}</span><i class="d"></i></span>`;
     };
     tickerTrack.innerHTML = order.map(item).join('') + order.map(item).join('');
+  }
+
+  /* ── real-time live price sync ─────────────────────────────────────────── */
+  const GECKO_IDS = {
+    BTC: 'bitcoin',
+    ETH: 'ethereum',
+    SOL: 'solana',
+    BNB: 'binancecoin',
+    XRP: 'ripple',
+    ADA: 'cardano',
+    DOGE: 'dogecoin',
+    LINK: 'chainlink',
+    AVAX: 'avalanche-2',
+    DOT: 'polkadot',
+    SUI: 'sui',
+    HBAR: 'hedera-hashgraph',
+    APT: 'aptos',
+    POL: 'polygon-ecosystem-token',
+  };
+
+  const BINANCE_SYMBOLS = {
+    BTC: 'BTCUSDT',
+    ETH: 'ETHUSDT',
+    SOL: 'SOLUSDT',
+    BNB: 'BNBUSDT',
+    XRP: 'XRPUSDT',
+    ADA: 'ADAUSDT',
+    DOGE: 'DOGEUSDT',
+    LINK: 'LINKUSDT',
+    AVAX: 'AVAXUSDT',
+    DOT: 'DOTUSDT',
+    SUI: 'SUIUSDT',
+    HBAR: 'HBARUSDT',
+    APT: 'APTUSDT',
+    POL: 'POLUSDT',
+  };
+  const SYMBOL_TO_KEY = Object.fromEntries(
+    Object.entries(BINANCE_SYMBOLS).map(([k, sym]) => [sym, k])
+  );
+
+  let usdtInrRate = 89.5; // live dynamic exchange rate
+
+  function updateCoinData(k, newPrice, newChg, isLive = true) {
+    const c = COINS[k];
+    if (!c) return;
+    const oldPrice = c.price;
+    if (newPrice != null && !isNaN(newPrice) && newPrice > 0) {
+      c.price = newPrice;
+    }
+    if (newChg != null && !isNaN(newChg)) {
+      c.chg = round(newChg, 2);
+    }
+
+    // Ticker
+    $$(`[data-tk="${k}"]`).forEach((el) => {
+      const kind = el.dataset.kind;
+      if (kind === 'price') el.textContent = rupee(c.price, c.dp);
+      if (kind === 'chg') {
+        el.textContent = pct(c.chg);
+        el.className = c.chg >= 0 ? 'up' : 'down';
+      }
+    });
+
+    // Prices in tables / cards
+    $$(`[data-price="${k}"]`).forEach((el) => {
+      const next = rupee(c.price, c.dp);
+      if (el.textContent === next) return;
+      el.textContent = next;
+      el.animate?.(
+        [{ backgroundColor: c.chg >= 0 ? 'rgba(0,184,124,.22)' : 'rgba(235,59,90,.22)' }, { backgroundColor: 'transparent' }],
+        { duration: 800, easing: 'ease-out' }
+      );
+    });
+
+    // Change pills & percentages
+    $$(`[data-chg-pill="${k}"]`).forEach((el) => {
+      el.textContent = pct(c.chg);
+      el.className = 'chg ' + (c.chg >= 0 ? 'up' : 'down');
+    });
+    $$(`[data-chg="${k}"]`).forEach((el) => {
+      el.textContent = pct(c.chg);
+      el.className = 'chg ' + (c.chg >= 0 ? 'up' : 'down');
+    });
+
+    // Market table row range track
+    const row = $(`.mrow[data-key="${k}"]`);
+    if (row) {
+      const rangeEl = $('.mrow__range', row);
+      if (rangeEl) {
+        const lo = c.price * (1 - Math.max(0.012, Math.abs(c.chg) / 100 * 0.7));
+        const hi = c.price * (1 + Math.max(0.012, Math.abs(c.chg) / 100 * 0.7));
+        const pos = clamp((c.price - lo) / Math.max(1e-9, hi - lo), .06, .94) * 100;
+        const smalls = $$('small', rangeEl);
+        if (smalls[0]) smalls[0].textContent = `24h low ${rupee(lo, 0)}`;
+        if (smalls[1]) smalls[1].textContent = `24h high ${rupee(hi, 0)}`;
+        const fill = $('.mrow__fill', rangeEl);
+        const knob = $('.mrow__knob', rangeEl);
+        if (fill) fill.style.width = pos + '%';
+        if (knob) knob.style.left = pos + '%';
+      }
+    }
+
+    // Hero specific updates (BTC)
+    if (k === 'BTC') {
+      if (heroPrice) {
+        heroPrice.classList.remove('flash-up', 'flash-down');
+        void heroPrice.offsetWidth;
+        heroPrice.classList.add(c.chg >= 0 ? 'flash-up' : 'flash-down');
+        clearTimeout(heroPrice._flash);
+        heroPrice._flash = setTimeout(() => heroPrice.classList.remove('flash-up', 'flash-down'), 700);
+      }
+      const stamp = $('#chartStamp');
+      if (stamp) {
+        stamp.textContent = (isLive ? 'Live · ' : 'Updated ') + new Date().toLocaleTimeString('en-IN', {
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+        }) + ' IST';
+      }
+      $$('[data-hl]').forEach((el) => {
+        const h = c.price * (el.dataset.hl === 'high' ? 1.006 : 0.994);
+        el.textContent = rupee(h, 0);
+      });
+      if (heroChart && Math.abs(c.price - oldPrice) / oldPrice > 0.005) {
+        heroChart.setSeries('BTC', '1D');
+      }
+    }
+
+    // Converter
+    if (conv && k === conv.coin) {
+      if (convRate) convRate.textContent = `1 ${conv.coin} = ${rupee(c.price, c.dp)}`;
+      if (convTo && document.activeElement !== convTo) convCalc('from');
+    }
+
+    // Demo terminal
+    if (state && k === state.coin) {
+      if (limitInput && document.activeElement !== limitInput && state.type === 'market') {
+        state.limit = c.price;
+        limitInput.value = inr(c.price, 0);
+      }
+      renderBook();
+      if (document.activeElement !== amountInput) recalc();
+    }
+  }
+
+  /* CoinGecko live fetch */
+  async function fetchLiveCoinGecko() {
+    try {
+      const ids = Object.values(GECKO_IDS).join(',');
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=inr,usd&include_24hr_change=true`);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      if (data.bitcoin?.inr && data.bitcoin?.usd) {
+        usdtInrRate = data.bitcoin.inr / data.bitcoin.usd;
+      }
+
+      KEYS.forEach((k) => {
+        const id = GECKO_IDS[k];
+        if (data[id] && data[id].inr != null) {
+          updateCoinData(k, data[id].inr, data[id].inr_24h_change, true);
+        }
+      });
+    } catch (err) {
+      console.warn('CoinGecko fetch failed, trying Binance fallback...', err);
+      fetchBinanceFallback();
+    }
+  }
+
+  /* Binance REST fallback */
+  async function fetchBinanceFallback() {
+    try {
+      const symbols = encodeURIComponent(JSON.stringify(Object.values(BINANCE_SYMBOLS)));
+      const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${symbols}`);
+      if (!res.ok) return;
+      const list = await res.json();
+      if (!Array.isArray(list)) return;
+      list.forEach((t) => {
+        const k = SYMBOL_TO_KEY[t.symbol];
+        if (!k) return;
+        const usdtPrice = parseFloat(t.lastPrice);
+        const chg = parseFloat(t.priceChangePercent);
+        if (!isNaN(usdtPrice) && usdtPrice > 0) {
+          updateCoinData(k, usdtPrice * usdtInrRate, chg, true);
+        }
+      });
+    } catch (e) {
+      console.warn('Binance fallback failed:', e);
+    }
+  }
+
+  /* Binance real-time WebSocket */
+  let wsActive = false;
+  function connectBinanceWs() {
+    try {
+      const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+      ws.onopen = () => {
+        wsActive = true;
+      };
+      ws.onmessage = (event) => {
+        try {
+          const list = JSON.parse(event.data);
+          if (!Array.isArray(list)) return;
+          list.forEach((item) => {
+            const k = SYMBOL_TO_KEY[item.s];
+            if (!k) return;
+            const currentUSDT = parseFloat(item.c);
+            const openUSDT = parseFloat(item.o);
+            if (isNaN(currentUSDT) || currentUSDT <= 0) return;
+            const inrPrice = currentUSDT * usdtInrRate;
+            const chg = (openUSDT && !isNaN(openUSDT)) ? ((currentUSDT - openUSDT) / openUSDT) * 100 : COINS[k].chg;
+            updateCoinData(k, inrPrice, chg, true);
+          });
+        } catch (e) {}
+      };
+      ws.onerror = () => { ws.close(); };
+      ws.onclose = () => {
+        wsActive = false;
+        setTimeout(connectBinanceWs, 5000);
+      };
+    } catch (e) {
+      console.warn('WebSocket init error:', e);
+    }
+  }
+
+  /* Small simulated drift only if WebSocket is not streaming */
+  function simulatedJitter() {
+    if (wsActive) return;
+    KEYS.forEach((k) => {
+      const c = COINS[k];
+      const drift = (Math.random() - 0.5) * 0.0008;
+      const nextPrice = Math.max(0.01, c.price * (1 + drift));
+      const nextChg = round(clamp(c.chg + drift * 100 * 0.4, -25, 25), 2);
+      updateCoinData(k, nextPrice, nextChg, false);
+    });
+  }
+
+  // Start live pricing engine
+  fetchLiveCoinGecko();
+  connectBinanceWs();
+  setInterval(fetchLiveCoinGecko, 20000);
+
+  if (!reduceMotion) {
+    setInterval(simulatedJitter, 2400);
   }
 
   /* ── fee calculator ────────────────────────────────────────────────────── */
