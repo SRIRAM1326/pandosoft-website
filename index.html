@@ -332,26 +332,41 @@
     </div>
 
     <!-- Milestones Separated Display -->
-    <div style="background:var(--white); border:1px solid var(--line); border-radius:var(--r-xl); padding:24px 28px; margin:32px auto; max-width:960px; box-shadow:0 4px 18px rgba(10,25,48,0.04);">
-      <div style="text-align:center; margin-bottom:16px;">
-        <span class="badge" style="background:var(--blue-50); color:var(--blue); font-weight:700; font-size:11px; text-transform:uppercase; padding:4px 12px; border-radius:var(--r-xs);">Operational Milestones</span>
+    <div style="background:var(--white); border:1px solid var(--line); border-radius:var(--r-xl); padding:28px 24px; margin:32px auto; max-width:980px; box-shadow:0 4px 18px rgba(10,25,48,0.04);">
+      <div style="text-align:center; margin-bottom:20px;">
+        <span class="badge" style="background:var(--blue-50); color:var(--magenta); font-weight:700; font-size:11px; text-transform:uppercase; padding:4px 14px; border-radius:var(--r-xs); letter-spacing:0.06em; border:1px solid var(--blue-100);">Operational Milestones</span>
       </div>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; text-align:center;">
-        <div style="padding:12px; background:var(--bg); border-radius:var(--r-md); border:1px solid var(--line);">
-          <small style="font-size:11px; font-weight:700; color:var(--blue); text-transform:uppercase;">Milestone 1</small>
-          <p style="font-size:14px; font-weight:700; color:var(--ink); margin:4px 0 0 0;">Compliance review</p>
+      <div class="milestones-grid">
+        <div class="milestone-card">
+          <div class="milestone-card__img-wrap">
+            <img src="image/1-m.png" alt="Milestone 1 — Compliance review" loading="lazy" />
+          </div>
+          <small class="milestone-card__tag milestone-card__tag--magenta">Milestone 1</small>
+          <p class="milestone-card__title">Compliance review</p>
         </div>
-        <div style="padding:12px; background:var(--bg); border-radius:var(--r-md); border:1px solid var(--line);">
-          <small style="font-size:11px; font-weight:700; color:var(--green-700); text-transform:uppercase;">Milestone 2</small>
-          <p style="font-size:14px; font-weight:700; color:var(--ink); margin:4px 0 0 0;">24-hour wallet activation</p>
+
+        <div class="milestone-card">
+          <div class="milestone-card__img-wrap">
+            <img src="image/2-m.png" alt="Milestone 2 — 24-hour wallet activation" loading="lazy" />
+          </div>
+          <small class="milestone-card__tag milestone-card__tag--green">Milestone 2</small>
+          <p class="milestone-card__title">24-hour wallet activation</p>
         </div>
-        <div style="padding:12px; background:var(--bg); border-radius:var(--r-md); border:1px solid var(--line);">
-          <small style="font-size:11px; font-weight:700; color:var(--blue); text-transform:uppercase;">Milestone 3</small>
-          <p style="font-size:14px; font-weight:700; color:var(--ink); margin:4px 0 0 0;">Successful test transaction</p>
+
+        <div class="milestone-card">
+          <div class="milestone-card__img-wrap">
+            <img src="image/3-m.png" alt="Milestone 3 — Successful test transaction" loading="lazy" />
+          </div>
+          <small class="milestone-card__tag milestone-card__tag--magenta">Milestone 3</small>
+          <p class="milestone-card__title">Successful test transaction</p>
         </div>
-        <div style="padding:12px; background:var(--bg); border-radius:var(--r-md); border:1px solid var(--line);">
-          <small style="font-size:11px; font-weight:700; color:var(--green-700); text-transform:uppercase;">Milestone 4</small>
-          <p style="font-size:14px; font-weight:700; color:var(--ink); margin:4px 0 0 0;">Regular transactions</p>
+
+        <div class="milestone-card">
+          <div class="milestone-card__img-wrap">
+            <img src="image/4-m.png" alt="Milestone 4 — Regular transactions" loading="lazy" />
+          </div>
+          <small class="milestone-card__tag milestone-card__tag--green">Milestone 4</small>
+          <p class="milestone-card__title">Regular transactions</p>
         </div>
       </div>
     </div>
