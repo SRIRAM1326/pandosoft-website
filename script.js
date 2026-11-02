@@ -236,27 +236,61 @@
         eqSubmitBtn.textContent = 'Submitting Enquiry...';
       }
 
-      // Simulate secure processing / Supabase dispatch
-      setTimeout(() => {
+      const phoneVal = ($('#eqPhone') && $('#eqPhone').value.trim()) || 'Not provided';
+      const rangeVal = ($('#eqRange') && $('#eqRange').value) || 'Not specified';
+
+      const payload = {
+        name: name,
+        email: email,
+        phone: phoneVal,
+        enquiry_type: eqType,
+        company: company,
+        transaction_range: rangeVal,
+        message: message,
+        _subject: 'New OTC Service Enquiry: ' + company + ' (' + eqType + ')',
+        _template: 'table',
+        _captcha: 'false'
+      };
+
+      fetch('https://formsubmit.co/ajax/Info@pandosoftindia.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error('Submission failed');
+        return res.json();
+      })
+      .then((data) => {
         if (eqAlert) {
           eqAlert.className = 'form-alert form-alert--success';
           eqAlert.hidden = false;
           eqAlert.textContent = 'Your enquiry has been received. Please check your email for further communication. This enquiry does not create a trade or lock a price.';
         }
-
-        toast('Your enquiry has been received. Check your email for further communication.', 'success', 5000);
+        toast('Your enquiry has been sent to Info@pandosoftindia.com.', 'success', 5000);
         enquiryForm.reset();
-
+      })
+      .catch((err) => {
+        console.error('FormSubmit Error:', err);
+        if (eqAlert) {
+          eqAlert.className = 'form-alert form-alert--error';
+          eqAlert.hidden = false;
+          eqAlert.textContent = 'We could not submit your enquiry. Please try again or email Info@pandosoftindia.com directly.';
+        }
+        toast('Could not send enquiry. Please try again.', 'error', 5000);
+      })
+      .finally(() => {
         if (eqSubmitBtn) {
           eqSubmitBtn.disabled = false;
           eqSubmitBtn.innerHTML = eqSubmitBtn.dataset.originalHtml || 'Send Enquiry';
         }
-
-        // Scroll so alert is clearly visible
         if (eqAlert) {
           eqAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
-      }, 700);
+      });
     });
   }
 
@@ -307,27 +341,67 @@
         refSubmitBtn.textContent = 'Submitting Partner Application...';
       }
 
-      // Simulate secure processing / Supabase Edge dispatch
-      setTimeout(() => {
+      const profileVal = ($('#refProfile') && $('#refProfile').value.trim()) || 'Not provided';
+      const volumeVal = ($('#refVolume') && $('#refVolume').value) || 'Not specified';
+      const messageVal = ($('#refMessage') && $('#refMessage').value.trim()) || 'None';
+      const marketingVal = ($('#refMarketing') && $('#refMarketing').checked) ? 'Yes' : 'No';
+
+      const payload = {
+        full_name: name,
+        email: email,
+        phone: phone,
+        city_and_country: location,
+        occupation: occupation,
+        professional_profile: profileVal,
+        expected_business_types: bizTypes,
+        expected_volume: volumeVal,
+        introduction_plan: introPlan,
+        additional_message: messageVal,
+        marketing_opt_in: marketingVal,
+        _subject: 'New Referral Partner Application: ' + name + ' (' + location + ')',
+        _template: 'table',
+        _captcha: 'false'
+      };
+
+      fetch('https://formsubmit.co/ajax/Info@pandosoftindia.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error('Submission failed');
+        return res.json();
+      })
+      .then((data) => {
         if (refAlert) {
           refAlert.className = 'form-alert form-alert--success';
           refAlert.hidden = false;
           refAlert.textContent = 'Thank you. Your Referral Partner application has been received. Our team will contact you after review. Submitting an application does not activate a partnership or commission entitlement.';
         }
-
-        toast('Thank you. Your Referral Partner application has been received.', 'success', 5000);
+        toast('Your partner application has been sent to Info@pandosoftindia.com.', 'success', 5000);
         referralForm.reset();
-
+      })
+      .catch((err) => {
+        console.error('FormSubmit Error:', err);
+        if (refAlert) {
+          refAlert.className = 'form-alert form-alert--error';
+          refAlert.hidden = false;
+          refAlert.textContent = 'We could not submit your application. Please try again or email Info@pandosoftindia.com.';
+        }
+        toast('Could not send application. Please try again.', 'error', 5000);
+      })
+      .finally(() => {
         if (refSubmitBtn) {
           refSubmitBtn.disabled = false;
           refSubmitBtn.innerHTML = refSubmitBtn.dataset.originalHtml || 'Submit Partner Application';
         }
-
-        // Scroll so alert is clearly visible
         if (refAlert) {
           refAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
-      }, 700);
+      });
     });
   }
 
