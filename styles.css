@@ -414,6 +414,27 @@ input, select { border-radius: 0; }
 }
 .brand:hover .brand__mark { transform: rotate(-6deg) scale(1.06); }
 .brand__mark svg { width: 22px; height: 22px; }
+.brand__tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  padding: 3px 8px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  line-height: 1.2;
+  margin-left: 2px;
+}
+.brand--light .brand__tag {
+  color: var(--d-text);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--d-line-2);
+}
+
 .brand__type {
   display: flex; align-items: baseline; gap: 5px;
   font-family: var(--display); font-weight: 600; font-size: 1.06rem; letter-spacing: -.03em;
