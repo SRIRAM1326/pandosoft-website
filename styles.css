@@ -396,9 +396,9 @@ input, select { border-radius: 0; }
 /* brand */
 .brand { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; }
 .brand__logo-img {
-  height: 36px;
+  height: 46px;
   width: auto;
-  max-width: 140px;
+  max-width: 180px;
   object-fit: contain;
   display: block;
   border-radius: 6px;
@@ -2019,6 +2019,7 @@ details[open] .faq__ico::before, details[open] .faq__ico::after { background: #f
 }
 
 @media (max-width: 980px) {
+  .brand__logo-img { height: 40px; }
   .nav, .header__cta { display: none; }
   .burger { display: block; margin-left: auto; }
   .header__in { height: 62px; }
