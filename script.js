@@ -106,12 +106,62 @@
     });
   }
 
-  /* ΓöÇΓöÇ Active link highlight on scroll ΓöÇΓöÇ */
+    /* ── Active link highlight on scroll & page ── */
   const sections = $$('section[id], header[id]');
   const navLinks = $$('.nav__link');
 
   function updateActiveNavLink() {
-    if (!sections.length || !navLinks.length) return;
+    if (!navLinks.length) return;
+    const pathName = window.location.pathname.split('/').pop() || 'index.html';
+    const isHowItWorks = pathName.includes('how-it-works') || pathName.includes('faq');
+    const isAbout = pathName.includes('about');
+    const isContact = pathName.includes('contact');
+    const isReferral = pathName.includes('referral');
+
+    if (isHowItWorks) {
+      const faqSec = $('#faq');
+      const isFaqScrolled = faqSec && (window.scrollY + 140 >= faqSec.offsetTop);
+      navLinks.forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        if (isFaqScrolled) {
+          if (href.includes('#faq')) link.classList.add('is-active');
+          else link.classList.remove('is-active');
+        } else {
+          if (href.includes('how-it-works.html') && !href.includes('#faq')) link.classList.add('is-active');
+          else link.classList.remove('is-active');
+        }
+      });
+      return;
+    }
+
+    if (isAbout) {
+      navLinks.forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        if (href.includes('about')) link.classList.add('is-active');
+        else link.classList.remove('is-active');
+      });
+      return;
+    }
+
+    if (isContact) {
+      navLinks.forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        if (href.includes('contact')) link.classList.add('is-active');
+        else link.classList.remove('is-active');
+      });
+      return;
+    }
+
+    if (isReferral) {
+      navLinks.forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        if (href.includes('referral')) link.classList.add('is-active');
+        else link.classList.remove('is-active');
+      });
+      return;
+    }
+
+    if (!sections.length) return;
     const scrollPos = window.scrollY + 140;
 
     let currentSectionId = '';
@@ -125,8 +175,8 @@
 
     if (currentSectionId) {
       navLinks.forEach((link) => {
-        const href = link.getAttribute('href');
-        if (href === `#${currentSectionId}`) {
+        const href = link.getAttribute('href') || '';
+        if (href === `#${currentSectionId}` || href === `index.html#${currentSectionId}`) {
           link.classList.add('is-active');
         } else {
           link.classList.remove('is-active');
@@ -135,27 +185,71 @@
     }
   }
   window.addEventListener('scroll', updateActiveNavLink, { passive: true });
+  window.addEventListener('DOMContentLoaded', updateActiveNavLink);
+  updateActiveNavLink();
 
-  /* ΓöÇΓöÇ Smooth Anchor Scrolling with Header Offset ΓöÇΓöÇ */
-  $$('a[href^="#"]').forEach((anchor) => {
+  /* ── Smooth Anchor Scrolling with Header Offset ── */
+  $$('a[href^="#"], a[href*="#"]').forEach((anchor) => {
     on(anchor, 'click', (e) => {
-      const targetId = anchor.getAttribute('href');
-      if (targetId === '#' || targetId === '#top') {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
+      const rawHref = anchor.getAttribute('href');
+      if (!rawHref) return;
 
-      const targetEl = $(targetId);
-      if (targetEl) {
-        e.preventDefault();
-        const headerOffset = 80;
-        const targetPos = targetEl.getBoundingClientRect().top + window.scrollY - headerOffset;
-        window.scrollTo({ top: targetPos, behavior: 'smooth' });
-        history.pushState(null, '', targetId);
+      // Handle pure hash or same-page anchor
+      if (rawHref.startsWith('#')) {
+        const targetId = rawHref;
+        if (targetId === '#' || targetId === '#top') {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        const targetEl = $(targetId);
+        if (targetEl) {
+          e.preventDefault();
+          const headerOffset = 80;
+          const targetPos = targetEl.getBoundingClientRect().top + window.scrollY - headerOffset;
+          window.scrollTo({ top: targetPos, behavior: 'smooth' });
+          history.pushState(null, '', targetId);
+        }
+      } else if (rawHref.includes('#')) {
+        try {
+          const url = new URL(rawHref, window.location.href);
+          if (url.origin === window.location.origin && url.pathname === window.location.pathname && url.hash) {
+            const targetId = url.hash;
+            if (targetId === '#' || targetId === '#top') {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              return;
+            }
+            const targetEl = $(targetId);
+            if (targetEl) {
+              e.preventDefault();
+              const headerOffset = 80;
+              const targetPos = targetEl.getBoundingClientRect().top + window.scrollY - headerOffset;
+              window.scrollTo({ top: targetPos, behavior: 'smooth' });
+              history.pushState(null, '', targetId);
+            }
+          }
+        } catch (err) {}
       }
     });
   });
+
+  // Handle hash scroll on initial load (e.g. how-it-works.html#faq)
+  if (window.location.hash) {
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        try {
+          const targetEl = $(window.location.hash);
+          if (targetEl) {
+            const headerOffset = 80;
+            const targetPos = targetEl.getBoundingClientRect().top + window.scrollY - headerOffset;
+            window.scrollTo({ top: targetPos, behavior: 'smooth' });
+          }
+        } catch (err) {}
+      }, 100);
+    });
+  }
 
   /* ΓöÇΓöÇ Scroll Reveal Animations ΓöÇΓöÇ */
   const revealElements = $$('.reveal');
