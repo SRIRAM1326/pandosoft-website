@@ -265,13 +265,17 @@ input, select { border-radius: 0; }
 .asset small { display: block; font-size: .76rem; color: var(--muted); }
 
 .asset__ico {
-  width: 38px; height: 38px; flex: 0 0 38px; border-radius: 11px;
-  display: grid; place-items: center;
-  font-family: var(--display); font-weight: 700; font-size: 1rem;
-  color: #fff; background: var(--muted-2);
-  box-shadow: inset 0 -1px 0 rgba(0,0,0,.14);
+  width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,.12);
+  background: transparent;
 }
-.asset__ico--xs { width: 26px; height: 26px; flex-basis: 26px; border-radius: 8px; font-size: .74rem; }
+.asset__ico svg {
+  width: 100%; height: 100%; display: block; border-radius: 50%;
+}
+.asset__ico--xs { width: 26px; height: 26px; flex-basis: 26px; border-radius: 50%; }
+.asset__ico--xs svg { width: 100%; height: 100%; display: block; border-radius: 50%; }
 /* coin badges stay inside the blue / green / white palette */
 .asset__ico[data-v="btc"]  { background: linear-gradient(140deg,#00B87C,#00996A); }
 .asset__ico[data-v="eth"]  { background: linear-gradient(140deg,#1355F5,#0E42C4); }
@@ -370,6 +374,16 @@ input, select { border-radius: 0; }
 
 /* brand */
 .brand { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.brand__logo-img {
+  height: 36px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
+  transition: transform .3s var(--spring);
+}
+.brand:hover .brand__logo-img { transform: scale(1.04); }
 .brand__mark {
   width: 34px; height: 34px; border-radius: 10px;
   display: grid; place-items: center;

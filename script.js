@@ -56,12 +56,35 @@
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 
+  /* ── official crypto logos ──────────────────────────────────────────────── */
+  const CRYPTO_LOGOS = {
+    BTC: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#F7931A"/><path d="M23.189 14.02c.314-2.096-1.283-3.223-3.465-3.975l.708-2.84-1.728-.43-.69 2.765c-.454-.114-.92-.22-1.385-.326l.695-2.783L15.596 6l-.708 2.839c-.376-.086-.745-.17-1.103-.258l.002-.007-2.384-.595-.46 1.846s1.283.294 1.256.312c.7.175.826.638.805 1.006l-.806 3.235c.048.012.11.03.18.057l-.183-.045-1.13 4.532c-.086.212-.303.531-.793.41.018.025-1.256-.313-1.256-.313l-.858 1.978 2.25.561c.418.105.828.215 1.231.318l-.715 2.872 1.727.43.708-2.84c.472.127.93.245 1.378.357l-.705 2.828 1.728.43.715-2.866c2.948.558 5.164.333 6.097-2.333.752-2.146-.037-3.385-1.588-4.192 1.13-.26 1.98-1.003 2.207-2.538zm-3.95 5.538c-.535 2.146-4.148.986-5.32.695l.95-3.805c1.17.292 4.929.872 4.37 3.11zm.535-5.569c-.487 1.953-3.495.96-4.47.717l.86-3.45c.976.244 4.116.699 3.61 2.733z" fill="#FFF"/></svg>',
+    ETH: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#627EEA"/><g fill="#FFF" fill-rule="evenodd"><path d="M16.498 4v8.87l7.497 3.35L16.498 4z" fill-opacity=".6"/><path d="M16.498 4L9 16.22l7.498-3.35V4z"/><path d="M16.498 21.968v6.027L24 17.616l-7.502 4.352z" fill-opacity=".6"/><path d="M16.498 27.995v-6.028L9 17.616l7.498 10.379z"/><path d="M16.498 20.573l7.497-4.353-7.497-3.348v7.701z" fill-opacity=".2"/><path d="M9 16.22l7.498 4.353v-7.701L9 16.22z" fill-opacity=".6"/></g></svg>',
+    SOL: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#141414"/><defs><linearGradient id="solG" x1="6" y1="26" x2="26" y2="6" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00FFA3"/><stop offset="100%" stop-color="#DC1FFF"/></linearGradient></defs><path d="M8.88 21.72a.76.76 0 01.53-.22h15.75c.34 0 .5.4.28.64l-2.44 2.58a.76.76 0 01-.53.22H6.72a.33.33 0 01-.28-.54l2.44-2.68zm0-12.04a.76.76 0 01.53-.22h15.75c.34 0 .5.4.28.64l-2.44 2.58a.76.76 0 01-.53.22H6.72a.33.33 0 01-.28-.54l2.44-2.68zm14.24 6.02a.76.76 0 01-.53.22H6.84c-.34 0-.5-.4-.28-.64l2.44-2.58a.76.76 0 01.53-.22h15.75c.34 0 .5.4.28.64l-2.44 2.58z" fill="url(#solG)"/></svg>',
+    BNB: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#F3BA2F"/><path d="M12.116 14.404L16 10.52l3.886 3.886 2.26-2.26L16 6l-6.144 6.144 2.26 2.26zM6 16l2.26-2.26L10.52 16l-2.26 2.26L6 16zm6.116 1.596L16 21.48l3.886-3.884 2.26 2.258L16 26l-6.144-6.144 2.26-2.26zm9.364-1.596l2.26-2.26L26 16l-2.26 2.26-2.26-2.26zM13.74 16l2.26-2.26 2.26 2.26-2.26 2.26-2.26-2.26z" fill="#FFF"/></svg>',
+    XRP: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#23292F"/><path d="M24.71 8h2.62l-5.69 5.61a6.44 6.44 0 01-9.14 0L6.78 8h2.65l4.38 4.31a4.57 4.57 0 006.48 0L24.71 8zm-13.4 16H8.69l5.69-5.61a6.44 6.44 0 019.14 0L29.24 24h-2.65l-4.38-4.31a4.57 4.57 0 00-6.48 0L11.31 24z" fill="#FFF"/></svg>',
+    ADA: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#0033AD"/><g fill="#FFF"><circle cx="16" cy="16" r="3.2"/><circle cx="16" cy="8.8" r="1.2"/><circle cx="16" cy="23.2" r="1.2"/><circle cx="8.8" cy="16" r="1.2"/><circle cx="23.2" cy="16" r="1.2"/><circle cx="10.9" cy="10.9" r="1.2"/><circle cx="21.1" cy="21.1" r="1.2"/><circle cx="10.9" cy="21.1" r="1.2"/><circle cx="21.1" cy="10.9" r="1.2"/><circle cx="16" cy="5.8" r=".8"/><circle cx="16" cy="26.2" r=".8"/><circle cx="5.8" cy="16" r=".8"/><circle cx="26.2" cy="16" r=".8"/></g></svg>',
+    DOGE: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#C2A633"/><path d="M11.5 8h6.2c3.9 0 6.8 2.6 6.8 6.4 0 1.2-.3 2.3-.9 3.3-.9 1.5-2.4 2.5-4.3 2.9l-.6.1h-4.3v3.3h-2.9V8zm2.9 8.6h4.8v-1.8h-4.8v-3.7h-2.1v1.8h-1.8v1.9h1.8v8.3h2.1V16.6zm2.9 2.9h1.8c2.4 0 4.1-1.4 4.1-3.6 0-2.2-1.7-3.6-4.1-3.6h-1.8v7.2z" fill="#FFF"/></svg>',
+    LINK: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#375BD2"/><path d="M16 6l8.66 5v10L16 26l-8.66-5V11L16 6zm0 3.2L9.72 13v6l6.28 3.8 6.28-3.8v-6L16 9.2z" fill="#FFF"/><rect x="14.2" y="10.5" width="3.6" height="11" rx="1.8" fill="#FFF"/></svg>',
+    AVAX: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#E84142"/><path d="M19.95 16.92l-3.32-5.75c-.29-.5-.98-.5-1.26 0L8.52 22.95c-.29.5.06 1.13.64 1.13h6.63c.48 0 .86-.38.86-.86 0-.3-.15-.57-.4-.73l-4.78-7.9 3.85-6.68 5.76 10.02a.86.86 0 001.07.38.86.86 0 00-.2-1.39zm2.46-4.26a.86.86 0 00-.75.43l-5.07 8.78c-.28.5.07 1.13.64 1.13h10.15c.58 0 .93-.63.64-1.13l-5.07-8.78a.86.86 0 00-.54-.43z" fill="#FFF"/></svg>',
+    DOT: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#E6007A"/><circle cx="16" cy="16" r="6.4" fill="#FFF"/><circle cx="16" cy="7.2" r="2.4" fill="#FFF"/><circle cx="16" cy="24.8" r="2.4" fill="#FFF"/><circle cx="24.8" cy="16" r="2.4" fill="#FFF"/><circle cx="7.2" cy="16" r="2.4" fill="#FFF"/></svg>',
+    SUI: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#2A82E4"/><path d="M16 6.5c-4.2 4.6-7.5 9-7.5 13 0 4.2 3.4 7 7.5 7s7.5-2.8 7.5-7c0-4-3.3-8.4-7.5-13zm0 4.2c2.8 3.5 5 7.1 5 9.8 0 2.8-2.2 4.6-5 4.6s-5-1.8-5-4.6c0-2.7 2.2-6.3 5-9.8z" fill="#FFF"/></svg>',
+    HBAR: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#222"/><path d="M10.5 7.5h2.8v5.2h5.4V7.5h2.8v17h-2.8v-5.4h-5.4v5.4h-2.8v-17zm2.8 8h5.4v-1.8h-5.4v1.8z" fill="#FFF"/></svg>',
+    APT: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#000"/><path d="M16 6.5l-8.5 15h3.6l4.9-8.7 4.9 8.7h3.6L16 6.5zm-5 13l1.8-3.2h6.4l1.8 3.2H11zm-1.8 3.2h13.6l1.2 2.3H8l1.2-2.3z" fill="#FFF"/></svg>',
+    POL: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#8247E5"/><path d="M20.5 12.2l-3.8-2.2a1.4 1.4 0 00-1.4 0l-3.8 2.2a1.4 1.4 0 00-.7 1.2v4.4a1.4 1.4 0 00.7 1.2l3.8 2.2a1.4 1.4 0 001.4 0l3.8-2.2a1.4 1.4 0 00.7-1.2v-4.4a1.4 1.4 0 00-.7-1.2zm-4.5 7.6l-3.1-1.8v-3.6l3.1 1.8v3.6zm1.4-1.8l-3.1-1.8 3.1-1.8 3.1 1.8-3.1 1.8zm3.1-3.6l-3.1 1.8v-3.6l3.1-1.8v3.6z" fill="#FFF"/></svg>'
+  };
+
+  function getCoinIcon(key) {
+    const k = (key || '').toUpperCase();
+    return CRYPTO_LOGOS[k] || `<span style="font-size:0.75rem; font-weight:700;">${k.slice(0, 3)}</span>`;
+  }
+
   /* ── coin roundels ─────────────────────────────────────────────────────── */
   $$('.asset__ico').forEach((el) => {
     const k = el.dataset.coin;
-    if (!COINS[k]) return;
+    if (!k || !COINS[k]) return;
     el.dataset.v = k.toLowerCase();
-    el.textContent = COINS[k].sym;
+    el.innerHTML = getCoinIcon(k);
   });
 
   /* ── toast ─────────────────────────────────────────────────────────────── */
@@ -474,7 +497,7 @@
       return `
         <div class="mrow" data-key="${k}" tabindex="0" role="row">
           <span class="mrow__asset">
-            <span class="asset__ico asset__ico--xs" data-coin="${k}" data-v="${k.toLowerCase()}" aria-hidden="true">${c.sym}</span>
+            <span class="asset__ico asset__ico--xs" data-coin="${k}" data-v="${k.toLowerCase()}" aria-hidden="true">${getCoinIcon(k)}</span>
             <span class="mrow__name"><b>${c.name}</b><small>${k}/INR</small></span>
           </span>
           <span class="mrow__price" data-price="${k}">${rupee(c.price, c.dp)}</span>
@@ -661,7 +684,7 @@
       coinList.innerHTML = KEYS.map((k) => {
         const c = COINS[k];
         return `<button class="sheet__row" type="button" data-pick="${k}">
-          <span class="asset__ico asset__ico--xs" data-v="${k.toLowerCase()}" aria-hidden="true">${c.sym}</span>
+          <span class="asset__ico asset__ico--xs" data-v="${k.toLowerCase()}" aria-hidden="true">${getCoinIcon(k)}</span>
           <span><b>${c.name}</b><small>${k}/INR · ${pct(c.chg)}</small></span>
           <em>${rupee(c.price, c.dp)}</em>
         </button>`;
@@ -754,7 +777,7 @@
     if (ticketIco) {
       ticketIco.dataset.coin = key;
       ticketIco.dataset.v = key.toLowerCase();
-      ticketIco.textContent = COINS[key].sym;
+      ticketIco.innerHTML = getCoinIcon(key);
     }
     ticketChart?.setSeries(key, '1D');
     $$('[data-price]').forEach((el) => {
@@ -1514,9 +1537,12 @@
       return `
         <div class="hm-tile ${spanClass}" data-hmkey="${k}" style="background:${bg}; display:${hide ? 'none' : 'flex'};">
           <div class="hm-tile-top">
-            <div>
-              <span class="hm-tile-sym">${k}</span>
-              <span class="hm-tile-name">${c.name}</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="asset__ico asset__ico--xs" style="width:24px; height:24px; flex-basis:24px; box-shadow:none;">${getCoinIcon(k)}</span>
+              <div>
+                <span class="hm-tile-sym">${k}</span>
+                <span class="hm-tile-name">${c.name}</span>
+              </div>
             </div>
             <span class="hm-tile-chg">${pct(c.chg)}</span>
           </div>
