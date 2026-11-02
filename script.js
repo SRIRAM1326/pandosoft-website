@@ -1834,6 +1834,56 @@
     });
   }
 
+  // 7. Contact / OTC Enquiry Form Handling
+  const enquiryForm = $('#enquiryForm');
+  const eqAlert = $('#eqFormAlert');
+  const eqSubmitBtn = $('#eqSubmitBtn');
+
+  if (enquiryForm) {
+    on(enquiryForm, 'submit', (e) => {
+      e.preventDefault();
+
+      const name = ($('#eqName') && $('#eqName').value.trim()) || '';
+      const email = ($('#eqEmail') && $('#eqEmail').value.trim()) || '';
+      const eqType = ($('#eqType') && $('#eqType').value) || '';
+      const company = ($('#eqCompany') && $('#eqCompany').value.trim()) || '';
+      const message = ($('#eqMessage') && $('#eqMessage').value.trim()) || '';
+      const privacy = $('#eqPrivacy') && $('#eqPrivacy').checked;
+
+      if (!name || !email || !eqType || !company || !message || !privacy) {
+        if (eqAlert) {
+          eqAlert.className = 'form-alert form-alert--error';
+          eqAlert.hidden = false;
+          eqAlert.textContent = 'Please complete all required fields and accept the Privacy Notice.';
+        }
+        return;
+      }
+
+      // Valid form - submission state
+      if (eqSubmitBtn) {
+        eqSubmitBtn.disabled = true;
+        eqSubmitBtn.dataset.originalHtml = eqSubmitBtn.innerHTML;
+        eqSubmitBtn.textContent = 'Submitting Enquiry...';
+      }
+
+      setTimeout(() => {
+        if (eqAlert) {
+          eqAlert.className = 'form-alert form-alert--success';
+          eqAlert.hidden = false;
+          eqAlert.textContent = 'Your enquiry has been received. Please check your email for further communication. This enquiry does not create a trade or lock a price.';
+        }
+
+        toast('Your enquiry has been received. Check your email for further communication.');
+        enquiryForm.reset();
+
+        if (eqSubmitBtn) {
+          eqSubmitBtn.disabled = false;
+          eqSubmitBtn.innerHTML = eqSubmitBtn.dataset.originalHtml || 'Send Enquiry';
+        }
+      }, 700);
+    });
+  }
+
   // Initial runs for all tools
   runFullConverter();
   renderHeatmap();
