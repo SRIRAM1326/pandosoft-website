@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PandoSoft India — Your USDT OTC Journey. Simplified Online.</title>
+<title>PandoSoft India — Your OTC Journey. Simplified Online.</title>
 <meta name="description" content="Buy, sell and trade 400+ cryptocurrencies in rupees. UPI deposits, INR-margined futures, 1% TDS handled automatically and a demo terminal you can try without signing up." />
 <meta name="theme-color" content="#071B3A" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -92,7 +92,7 @@
       </p>
 
       <h1 class="reveal d1">
-        Your <span class="mark">USDT OTC</span> Journey.<br />
+        Your <span class="mark">OTC</span> Journey.<br />
         Simplified Online.
       </h1>
 
@@ -207,7 +207,7 @@
         </span>
         <h2 class="rates-title">Real-Time Reference Rates &amp; Order Book</h2>
         <p class="rates-subtitle">
-          Real-time institutional benchmarks powered by CoinGecko with indicative multi-channel OTC depth across our liquidity partners.
+          Real-time institutional benchmarks with indicative multi-channel OTC depth across our liquidity partners.
         </p>
       </div>
       <div class="rates-header__controls">
@@ -230,7 +230,7 @@
         <div class="rates-card__head">
           <div class="rates-card__title-group">
             <h3 class="rates-card__title">Major Digital Assets</h3>
-            <span class="rates-card__tag">CoinGecko Feed</span>
+            <span class="rates-card__tag">Live Reference Feed</span>
           </div>
           <span class="rates-card__note">Click any coin to view indicative order book</span>
         </div>
@@ -413,21 +413,21 @@
       </div>
     </div>
 
-    <!-- ══════════ LIVE USDT/INR CHART, ORDER BOOK & BUY/SELL DESK ══════════ -->
+    <!-- ══════════ LIVE DIGITAL ASSETS / INR CHART, ORDER BOOK & BUY/SELL DESK ══════════ -->
     <div class="usdt-terminal" id="usdt-terminal">
       <div class="usdt-terminal__header">
         <div class="usdt-terminal__pair">
           <div class="usdt-terminal__icons">
-            <img src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT" class="usdt-terminal__logo" />
+            <img src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT" class="usdt-terminal__logo" id="terminalAssetLogo" />
             <span class="usdt-terminal__badge-inr">₹</span>
           </div>
           <div>
             <div class="usdt-terminal__title-row">
-              <h3 class="usdt-terminal__title">USDT / INR Live OTC Desk</h3>
+              <h3 class="usdt-terminal__title" id="terminalMainTitle">USDT / INR Live</h3>
               <span class="terminal-badge terminal-badge--live"><span class="pulse-dot"></span> Live Market</span>
-              <span class="terminal-badge terminal-badge--chain">TRC20 &bull; ERC20 &bull; BEP20</span>
+              <span class="terminal-badge terminal-badge--chain" id="terminalChainBadge">TRC20 &bull; ERC20 &bull; BEP20</span>
             </div>
-            <p class="usdt-terminal__sub">Assisted Corporate Desk &bull; Non-Custodial INR Settlement &bull; Real-time CoinGecko Reference</p>
+            <p class="usdt-terminal__sub" id="terminalSubTitle">Assisted Corporate &amp; Individual Desk &bull; Non-Custodial INR Settlement</p>
           </div>
         </div>
 
@@ -461,11 +461,21 @@
           <div class="panel-header">
             <div class="panel-header__top">
               <div class="panel-header__market">
-                <span class="panel-header__title">USDT / INR</span>
+                <span class="panel-header__title" id="chartMarketTitle">USDT / INR</span>
                 <span class="panel-header__price" id="chartHoverPrice">₹91.48</span>
                 <span class="panel-header__badge">Live</span>
               </div>
               <div class="panel-header__controls">
+                <div class="asset-selector-wrap">
+                  <label for="graphAssetSelect" class="asset-selector-label">Asset Name:</label>
+                  <select id="graphAssetSelect" class="graph-asset-dropdown" aria-label="Select Asset Name">
+                    <option value="bitcoin">Bitcoin (BTC)</option>
+                    <option value="ethereum">Ethereum (ETH)</option>
+                    <option value="tether" selected>Tether (USDT)</option>
+                    <option value="ripple">XRP (XRP)</option>
+                    <option value="solana">Solana (SOL)</option>
+                  </select>
+                </div>
                 <div class="chart-mode-selector" role="group" aria-label="Chart Style">
                   <button type="button" class="mode-btn is-active" data-mode="candles" title="Candlestick Chart">🕯️ Candles</button>
                   <button type="button" class="mode-btn" data-mode="line" title="Line Chart">📈 Line</button>
@@ -498,7 +508,7 @@
           <div class="chart-info-bar">
             <span class="chart-info-tag">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Auto-synced live CoinGecko rates
+              Auto-synced live reference rates
             </span>
             <span class="chart-info-note" id="chartSyncTime">Last tick: 1 sec ago</span>
           </div>
@@ -514,7 +524,7 @@
           <div class="desk-book">
             <div class="desk-book__head">
               <span>Price (₹)</span>
-              <span class="text-right">Size (USDT)</span>
+              <span class="text-right" id="deskBookSizeHead">Size (USDT)</span>
               <span class="text-right">Total</span>
             </div>
 
@@ -549,11 +559,15 @@
           <div class="trade-toggle-bar">
             <button type="button" class="trade-toggle-btn trade-toggle-btn--buy is-active" id="btnSideBuy">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-              Buy USDT
+              <span id="txtBtnBuy">Buy USDT</span>
             </button>
             <button type="button" class="trade-toggle-btn trade-toggle-btn--sell" id="btnSideSell">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-              Sell USDT
+              Corporate Sell
+            </button>
+            <button type="button" class="trade-toggle-btn trade-toggle-btn--sell trade-toggle-btn--ind-sell" id="btnSideIndSell">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg>
+              Individual Sell
             </button>
           </div>
 
@@ -562,11 +576,11 @@
             <div class="trade-input-block">
               <div class="trade-input-block__head">
                 <label for="tradeInpPay" id="lblTradePay">You Pay (INR)</label>
-                <span class="trade-input-block__tag">Min: ₹1 Lakh</span>
+                <span class="trade-input-block__tag" id="tagTradeMin">Min: ₹1 Lakh</span>
               </div>
               <div class="trade-input-row">
                 <span class="trade-cur-symbol" id="symTradePay">₹</span>
-                <input type="number" id="tradeInpPay" class="trade-num-input" value="500000" step="10000" min="50000" />
+                <input type="number" id="tradeInpPay" class="trade-num-input" value="500000" step="10000" min="25000" />
                 <span class="trade-cur-code" id="codeTradePay">INR</span>
               </div>
             </div>
@@ -599,11 +613,11 @@
               </div>
               <div class="trade-summary-row">
                 <span>Settlement Route</span>
-                <strong style="color:var(--green-700);">Same-Day NEFT / RTGS</strong>
+                <strong style="color:var(--green-700);" id="deskSummaryRoute">Same-Day NEFT / RTGS</strong>
               </div>
               <div class="trade-summary-row">
                 <span>Transaction Type</span>
-                <strong>Non-Custodial Assisted OTC</strong>
+                <strong id="deskSummaryType">Non-Custodial Assisted OTC</strong>
               </div>
             </div>
 
@@ -613,12 +627,12 @@
                 <span id="txtDeskTradeAction">Buy USDT with INR</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
-              <a href="https://portal.pandosoftindia.com/onboard" class="btn btn--trade-sub">
+              <a href="https://portal.pandosoftindia.com/onboard" class="btn btn--trade-sub" id="btnDeskOnboard">
                 Start Onboarding &rarr;
               </a>
             </div>
 
-            <span class="trade-compliance-note">
+            <span class="trade-compliance-note" id="deskComplianceNote">
               *Eligible for registered Indian corporate entities &amp; verified introducers. Final quote locked at execution.
             </span>
           </div>
@@ -711,17 +725,27 @@
     <div class="sechead sechead--center">
       <p class="eyebrow"><span></span> Customer Segments</p>
       <h2>Enquiries tailored to your requirement.</h2>
-      <p class="sechead__lede">We support eligible businesses with structured, assisted OTC digital asset execution.</p>
+      <p class="sechead__lede">We support eligible businesses and individuals with structured, assisted OTC digital asset execution.</p>
     </div>
 
-    <div class="secgrid" style="grid-template-columns:1fr 1fr; gap:24px; margin-top:32px;">
+    <div class="secgrid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; margin-top:32px;">
       <div class="seccard">
         <span class="seccard__ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         </span>
-        <h3>Companies</h3>
+        <h3>Companies &amp; Corporates</h3>
         <p style="font-size:0.95rem; line-height:1.6;">
           Onboard your business online with incorporation, ownership and authorised signatory information requested by the compliance team.
+        </p>
+      </div>
+
+      <div class="seccard">
+        <span class="seccard__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg>
+        </span>
+        <h3>Individual Sell Desk</h3>
+        <p style="font-size:0.95rem; line-height:1.6;">
+          Verified Indian residents can liquidate supported digital assets (USDT, BTC, ETH, SOL, XRP) with direct personal bank transfer and 1% TDS compliance.
         </p>
       </div>
 
@@ -876,8 +900,7 @@
     </div>
 
     <div class="footer__bottom">
-      <span>© 2026 PandoSoft India Private Limited. All rights reserved.<br />
-      <strong>Address:</strong> First Floor, 11/6, Ramanathan St, Mahalingapuram, Nungambakkam, Chennai - 600034, Tamil Nadu</span>
+      <span>© 2026 PandoSoft India Private Limited. All rights reserved.</span>
       <div class="footer__bottom-links">
         <a href="#otc-services">OTC Services</a><span aria-hidden="true">·</span>
         <a href="how-it-works.html">How It Works</a><span aria-hidden="true">·</span>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * PANDOSOFT INDIA ΓÇö Public Corporate OTC Website
  * Vanilla JavaScript (ES6+) for interactive UI elements and contact form handling
  */
@@ -499,7 +499,9 @@
     });
   }
 
-    /* ── CoinGecko Live Rates & Indicative OTC Order Book ── */
+    /* ── Live Reference Rates & Indicative OTC Order Book ── */
+  let setTerminalAsset = null;
+  let updateTerminalLivePrices = null;
   const ratesTableBody = $('#ratesTableBody');
   const ratesCountdownEl = $('#ratesCountdown');
   const ratesRefreshBtn = $('#ratesRefreshBtn');
@@ -610,6 +612,9 @@
             selectedCoinId = coinId;
             renderRatesTable();
             renderOrderBook();
+            if (typeof setTerminalAsset === 'function') {
+              setTerminalAsset(coinId);
+            }
           }
         });
       });
@@ -713,6 +718,9 @@
       } finally {
         renderRatesTable();
         renderOrderBook();
+        if (typeof updateTerminalLivePrices === 'function') {
+          updateTerminalLivePrices(ratesData);
+        }
         if (ratesRefreshBtn) {
           setTimeout(function() { ratesRefreshBtn.classList.remove('is-spinning'); }, 400);
         }
@@ -765,7 +773,7 @@
   }
 
       /* ════════════════════════════════════════════════════════════════
-     USDT/INR DEDICATED LIVE TERMINAL (RED & GREEN CANDLESTICK CHART, ORDER BOOK & TRADE DESK)
+     LIVE ASSET / INR TERMINAL (CANDLESTICK CHART, ORDER BOOK & TRADE DESK)
      ════════════════════════════════════════════════════════════════ */
   const terminalCanvas = $('#usdtTerminalChart');
   const tMidRateEl = $('#tMidRate');
@@ -782,13 +790,23 @@
   const ohlcLEl = $('#ohlcL');
   const ohlcCEl = $('#ohlcC');
 
+  const graphAssetSelect = $('#graphAssetSelect');
+  const terminalAssetLogo = $('#terminalAssetLogo');
+  const terminalMainTitle = $('#terminalMainTitle');
+  const terminalChainBadge = $('#terminalChainBadge');
+  const terminalSubTitle = $('#terminalSubTitle');
+  const chartMarketTitle = $('#chartMarketTitle');
+  const deskBookSizeHead = $('#deskBookSizeHead');
+
   const deskAsksList = $('#deskAsksList');
   const deskBidsList = $('#deskBidsList');
   const deskMidDisplay = $('#deskMidDisplay');
   const terminalSpreadBadge = $('#terminalSpreadBadge');
 
   const btnSideBuy = $('#btnSideBuy');
+  const txtBtnBuy = $('#txtBtnBuy');
   const btnSideSell = $('#btnSideSell');
+  const btnSideIndSell = $('#btnSideIndSell');
   const tradeInpPay = $('#tradeInpPay');
   const tradeInpRec = $('#tradeInpRec');
   const lblTradePay = $('#lblTradePay');
@@ -797,47 +815,153 @@
   const symTradeRec = $('#symTradeRec');
   const codeTradePay = $('#codeTradePay');
   const codeTradeRec = $('#codeTradeRec');
+  const tagTradeMin = $('#tagTradeMin');
   const btnTradeSwap = $('#btnTradeSwap');
   const deskSummaryRate = $('#deskSummaryRate');
+  const deskSummaryRoute = $('#deskSummaryRoute');
+  const deskSummaryType = $('#deskSummaryType');
+  const deskComplianceNote = $('#deskComplianceNote');
   const btnSubmitDeskTrade = $('#btnSubmitDeskTrade');
   const txtDeskTradeAction = $('#txtDeskTradeAction');
 
   if (terminalCanvas) {
-    let activeSide = 'buy'; // 'buy' or 'sell'
+    const TERMINAL_ASSETS = {
+      tether: {
+        id: 'tether',
+        name: 'Tether',
+        symbol: 'USDT',
+        pair: 'USDT / INR',
+        logo: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+        chains: 'TRC20 &bull; ERC20 &bull; BEP20',
+        basePrice: 91.48,
+        change24h: 0.12,
+        volatility: 0.0016,
+        decimals: 2,
+        amountDecimals: 2,
+        defaultPayInr: 500000,
+        defaultSellAsset: 5000,
+        currencySymbol: '₮',
+        baseOrderSize: 25000
+      },
+      bitcoin: {
+        id: 'bitcoin',
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        pair: 'BTC / INR',
+        logo: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+        chains: 'Bitcoin &bull; SegWit &bull; Lightning',
+        basePrice: 8845000,
+        change24h: 2.34,
+        volatility: 0.012,
+        decimals: 0,
+        amountDecimals: 5,
+        defaultPayInr: 500000,
+        defaultSellAsset: 0.06,
+        currencySymbol: '₿',
+        baseOrderSize: 0.85
+      },
+      ethereum: {
+        id: 'ethereum',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        pair: 'ETH / INR',
+        logo: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+        chains: 'ERC20 &bull; Arbitrum &bull; Optimism',
+        basePrice: 254800,
+        change24h: 1.58,
+        volatility: 0.015,
+        decimals: 0,
+        amountDecimals: 4,
+        defaultPayInr: 500000,
+        defaultSellAsset: 2.0,
+        currencySymbol: 'Ξ',
+        baseOrderSize: 12.0
+      },
+      ripple: {
+        id: 'ripple',
+        name: 'XRP',
+        symbol: 'XRP',
+        pair: 'XRP / INR',
+        logo: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
+        chains: 'XRP Ledger &bull; XRPL &bull; RippleNet',
+        basePrice: 219.20,
+        change24h: -0.84,
+        volatility: 0.018,
+        decimals: 2,
+        amountDecimals: 2,
+        defaultPayInr: 500000,
+        defaultSellAsset: 2200,
+        currencySymbol: '✕',
+        baseOrderSize: 15000
+      },
+      solana: {
+        id: 'solana',
+        name: 'Solana',
+        symbol: 'SOL',
+        pair: 'SOL / INR',
+        logo: 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
+        chains: 'Solana Mainnet &bull; SPL',
+        basePrice: 17350,
+        change24h: 4.12,
+        volatility: 0.020,
+        decimals: 2,
+        amountDecimals: 3,
+        defaultPayInr: 500000,
+        defaultSellAsset: 28,
+        currencySymbol: '◎',
+        baseOrderSize: 140
+      }
+    };
+
+    let selectedAssetId = (graphAssetSelect && graphAssetSelect.value) || 'tether';
+    let currentAsset = TERMINAL_ASSETS[selectedAssetId] || TERMINAL_ASSETS.tether;
+    let activeSide = 'buy'; // 'buy', 'sell' (corporate), or 'ind_sell' (individual)
     let activeTimeframe = '24h';
     let chartMode = 'candles'; // 'candles' or 'line'
-    let baseUsdtPrice = 91.48;
     let hoverIndex = null;
 
+    function formatInrPrice(val, decimals) {
+      if (typeof val !== 'number' || isNaN(val)) return '₹0.00';
+      if (val >= 100000) {
+        return '₹' + Number(val).toLocaleString('en-IN', {
+          minimumFractionDigits: decimals != null ? decimals : 0,
+          maximumFractionDigits: decimals != null ? decimals : 0
+        });
+      }
+      return '₹' + Number(val).toLocaleString('en-IN', {
+        minimumFractionDigits: decimals != null ? decimals : 2,
+        maximumFractionDigits: decimals != null ? decimals : 2
+      });
+    }
+
     // Generate realistic OHLC Candlestick series
-    function generateCandles(timeframe, currentBase) {
+    function generateCandles(timeframe, currentBase, baseVol) {
       const candles = [];
       const now = Date.now();
       let count = 30;
       let intervalMs = 3600 * 1000;
-      let volatility = 0.12;
+      let volFactor = baseVol || 0.01;
 
       if (timeframe === '1h') {
         count = 30;
         intervalMs = 2 * 60 * 1000;
-        volatility = 0.04;
+        volFactor *= 0.35;
       } else if (timeframe === '24h') {
         count = 28;
         intervalMs = 50 * 60 * 1000;
-        volatility = 0.10;
+        volFactor *= 0.85;
       } else if (timeframe === '7d') {
         count = 28;
         intervalMs = 6 * 3600 * 1000;
-        volatility = 0.22;
+        volFactor *= 1.8;
       } else if (timeframe === '1m') {
         count = 30;
         intervalMs = 24 * 3600 * 1000;
-        volatility = 0.40;
+        volFactor *= 3.0;
       }
 
-      // Generate walk ending at currentBase
+      const volatility = currentBase * volFactor;
       let runningPrice = currentBase - (volatility * 0.8 * (Math.random() > 0.5 ? 1 : -1));
-      const steps = [];
 
       for (let i = 0; i < count; i++) {
         const time = new Date(now - (count - 1 - i) * intervalMs);
@@ -845,16 +969,16 @@
         const rand = (Math.random() - 0.48) * volatility;
         const change = wave * 0.3 + rand;
 
-        const open = +runningPrice.toFixed(2);
-        runningPrice = Math.max(90.2, +(open + change).toFixed(2));
+        const open = +(runningPrice).toFixed(currentBase < 1000 ? 2 : 0);
+        runningPrice = Math.max(currentBase * 0.7, +(open + change).toFixed(currentBase < 1000 ? 2 : 0));
         const close = runningPrice;
 
-        const wickHigh = +(Math.random() * volatility * 0.7).toFixed(2);
-        const wickLow = +(Math.random() * volatility * 0.7).toFixed(2);
+        const wickHigh = +(Math.random() * volatility * 0.7).toFixed(currentBase < 1000 ? 2 : 0);
+        const wickLow = +(Math.random() * volatility * 0.7).toFixed(currentBase < 1000 ? 2 : 0);
 
-        const high = +(Math.max(open, close) + wickHigh).toFixed(2);
-        const low = +(Math.min(open, close) - wickLow).toFixed(2);
-        const volume = Math.round(15000 + Math.random() * 45000 + Math.abs(close - open) * 200000);
+        const high = +(Math.max(open, close) + wickHigh).toFixed(currentBase < 1000 ? 2 : 0);
+        const low = +(Math.min(open, close) - wickLow).toFixed(currentBase < 1000 ? 2 : 0);
+        const volume = Math.round((currentAsset.baseOrderSize * 10) * (0.6 + Math.random() * 0.8));
 
         candles.push({
           time: time,
@@ -866,7 +990,7 @@
         });
       }
 
-      // Ensure the very last candle closes at currentBase
+      // Ensure last candle closes at currentBase
       const last = candles[candles.length - 1];
       last.close = currentBase;
       last.high = Math.max(last.high, currentBase);
@@ -875,22 +999,22 @@
       return candles;
     }
 
-    let candleData = generateCandles(activeTimeframe, baseUsdtPrice);
+    let candleData = generateCandles(activeTimeframe, currentAsset.basePrice, currentAsset.volatility);
 
     // Update OHLC Header
     function updateOhlcDisplay(candle) {
       if (!candle) candle = candleData[candleData.length - 1];
       if (!candle) return;
 
-      if (ohlcOEl) ohlcOEl.textContent = candle.open.toFixed(2);
-      if (ohlcHEl) ohlcHEl.textContent = candle.high.toFixed(2);
-      if (ohlcLEl) ohlcLEl.textContent = candle.low.toFixed(2);
+      if (ohlcOEl) ohlcOEl.textContent = formatInrPrice(candle.open, currentAsset.decimals);
+      if (ohlcHEl) ohlcHEl.textContent = formatInrPrice(candle.high, currentAsset.decimals);
+      if (ohlcLEl) ohlcLEl.textContent = formatInrPrice(candle.low, currentAsset.decimals);
       if (ohlcCEl) {
-        ohlcCEl.textContent = candle.close.toFixed(2);
+        ohlcCEl.textContent = formatInrPrice(candle.close, currentAsset.decimals);
         ohlcCEl.style.color = candle.close >= candle.open ? '#047857' : '#DC2626';
       }
       if (chartHoverPriceEl) {
-        chartHoverPriceEl.textContent = '₹' + candle.close.toFixed(2);
+        chartHoverPriceEl.textContent = formatInrPrice(candle.close, currentAsset.decimals);
         chartHoverPriceEl.style.color = candle.close >= candle.open ? '#047857' : '#DC2626';
       }
     }
@@ -915,7 +1039,7 @@
       if (!candleData || candleData.length === 0) return;
 
       const paddingLeft = 14;
-      const paddingRight = 54;
+      const paddingRight = currentAsset.basePrice >= 100000 ? 76 : 58;
       const paddingTop = 22;
       const paddingBottom = 26;
       const chartW = width - paddingLeft - paddingRight;
@@ -933,13 +1057,13 @@
         if (c.volume > maxVol) maxVol = c.volume;
       }
 
-      const pPadding = (maxP - minP) * 0.1 || 0.15;
+      const pPadding = (maxP - minP) * 0.1 || (currentAsset.basePrice * 0.005);
       minP -= pPadding;
       maxP += pPadding;
       const range = maxP - minP;
 
       const getY = function(price) {
-        return paddingTop + chartH - ((price - minP) / range) * chartH;
+        return paddingTop + chartH - ((price - minP) / (range || 1)) * chartH;
       };
 
       // 1. Grid Lines and Price Axis
@@ -961,7 +1085,8 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.fillText('₹' + pVal.toFixed(2), width - paddingRight + 8, gY + 3.5);
+        const pText = formatInrPrice(pVal, currentAsset.decimals);
+        ctx.fillText(pText, width - paddingRight + 6, gY + 3.5);
       }
 
       const count = candleData.length;
@@ -975,7 +1100,6 @@
           const x = paddingLeft + (i + 0.5) * stepX;
           const isBullish = c.close >= c.open;
 
-          // Colors: Green for bullish, Red for bearish
           const candleColor = isBullish ? '#10B981' : '#EF4444';
           const wickColor = isBullish ? '#059669' : '#DC2626';
 
@@ -1024,7 +1148,6 @@
         ctx.lineWidth = 2.2;
         ctx.stroke();
 
-        // Gradient fill
         const lastX = paddingLeft + (count - 0.5) * stepX;
         const firstX = paddingLeft + 0.5 * stepX;
         ctx.lineTo(lastX, paddingTop + chartH);
@@ -1053,15 +1176,17 @@
       ctx.setLineDash([]);
 
       // Current Price pill on right axis
+      const pillText = formatInrPrice(lastCandle.close, currentAsset.decimals);
+      ctx.font = 'bold 9.5px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+      const pillW = Math.max(54, ctx.measureText(pillText).width + 12);
       ctx.fillStyle = curColor;
       ctx.beginPath();
-      ctx.roundRect ? ctx.roundRect(width - paddingRight + 2, curY - 9, 48, 18, 4) : ctx.rect(width - paddingRight + 2, curY - 9, 48, 18);
+      ctx.roundRect ? ctx.roundRect(width - paddingRight + 2, curY - 9, pillW, 18, 4) : ctx.rect(width - paddingRight + 2, curY - 9, pillW, 18);
       ctx.fill();
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 9.5px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('₹' + lastCandle.close.toFixed(2), width - paddingRight + 26, curY + 3.5);
+      ctx.fillText(pillText, width - paddingRight + 2 + pillW / 2, curY + 3.5);
 
       // 4. Hover Crosshair & Selection
       if (hoverIndex !== null && hoverIndex >= 0 && hoverIndex < count) {
@@ -1101,7 +1226,7 @@
       const rect = terminalCanvas.getBoundingClientRect();
       const clientX = e.clientX - rect.left;
       const paddingLeft = 14;
-      const paddingRight = 54;
+      const paddingRight = currentAsset.basePrice >= 100000 ? 76 : 58;
       const chartW = rect.width - paddingLeft - paddingRight;
 
       const normX = clientX - paddingLeft;
@@ -1123,9 +1248,9 @@
           chartHoverTooltip.innerHTML =
             '<div style="font-weight:700; margin-bottom:2px;">' + dateStr + ' ' + timeStr + '</div>' +
             '<div style="color:' + (isUp ? '#34D399' : '#F87171') + '; font-weight:800; font-size:12px;">' +
-              (isUp ? '▲ +' : '▼ ') + Math.abs(c.close - c.open).toFixed(2) + ' (' + ((Math.abs(c.close - c.open) / c.open) * 100).toFixed(2) + '%)' +
+              (isUp ? '▲ +' : '▼ ') + formatInrPrice(Math.abs(c.close - c.open), currentAsset.decimals) + ' (' + ((Math.abs(c.close - c.open) / (c.open || 1)) * 100).toFixed(2) + '%)' +
             '</div>' +
-            '<div style="font-size:10px; opacity:0.85; margin-top:2px;">Vol: ' + c.volume.toLocaleString() + ' USDT</div>';
+            '<div style="font-size:10px; opacity:0.85; margin-top:2px;">Vol: ' + c.volume.toLocaleString() + ' ' + currentAsset.symbol + '</div>';
 
           const stepX = chartW / count;
           chartHoverTooltip.style.left = (paddingLeft + (idx + 0.5) * stepX) + 'px';
@@ -1153,7 +1278,7 @@
           tfBtns.forEach(function(b) { b.classList.remove('is-active'); });
           btn.classList.add('is-active');
           activeTimeframe = tf;
-          candleData = generateCandles(activeTimeframe, baseUsdtPrice);
+          candleData = generateCandles(activeTimeframe, currentAsset.basePrice, currentAsset.volatility);
           renderTerminalChart();
           updateOhlcDisplay(candleData[candleData.length - 1]);
         }
@@ -1177,24 +1302,27 @@
     function renderDeskOrderBook() {
       if (!deskAsksList || !deskBidsList) return;
 
-      const mid = baseUsdtPrice;
+      const mid = currentAsset.basePrice;
       const askMultipliers = [1.0022, 1.0016, 1.0011, 1.0007, 1.0004];
       const bidMultipliers = [0.9996, 0.9992, 0.9987, 0.9981, 0.9975];
+      const unit = currentAsset.symbol;
+      const baseSize = currentAsset.baseOrderSize;
+      const dec = currentAsset.amountDecimals;
 
       let askTotal = 0;
       const asks = askMultipliers.map(function(m, idx) {
         const price = mid * m;
-        const size = Math.round(18000 * (1 + idx * 0.45 + Math.sin(idx * 2) * 0.2));
+        const size = +(baseSize * (1 + idx * 0.45 + Math.sin(idx * 2) * 0.2)).toFixed(dec);
         askTotal += size;
-        return { price: price, size: size, total: askTotal };
+        return { price: price, size: size, total: +askTotal.toFixed(dec) };
       });
 
       let bidTotal = 0;
       const bids = bidMultipliers.map(function(m, idx) {
         const price = mid * m;
-        const size = Math.round(20000 * (1 + idx * 0.42 + Math.cos(idx * 2) * 0.22));
+        const size = +(baseSize * (1 + idx * 0.42 + Math.cos(idx * 2) * 0.22)).toFixed(dec);
         bidTotal += size;
-        return { price: price, size: size, total: bidTotal };
+        return { price: price, size: size, total: +bidTotal.toFixed(dec) };
       });
 
       const maxTotal = Math.max(askTotal, bidTotal) || 1;
@@ -1203,9 +1331,9 @@
         const depthPct = Math.min(100, Math.round((item.total / maxTotal) * 100));
         return (
           '<div class="desk-book-row desk-book-row--ask">' +
-            '<span class="desk-price">₹' + item.price.toFixed(2) + '</span>' +
-            '<span class="desk-size text-right">' + item.size.toLocaleString() + '</span>' +
-            '<span class="desk-total text-right">' + item.total.toLocaleString() + '</span>' +
+            '<span class="desk-price">' + formatInrPrice(item.price, currentAsset.decimals) + '</span>' +
+            '<span class="desk-size text-right">' + Number(item.size).toLocaleString('en-US', { maximumFractionDigits: dec }) + '</span>' +
+            '<span class="desk-total text-right">' + Number(item.total).toLocaleString('en-US', { maximumFractionDigits: dec }) + '</span>' +
             '<div class="desk-book-row__fill" style="width:' + depthPct + '%;"></div>' +
           '</div>'
         );
@@ -1215,77 +1343,175 @@
         const depthPct = Math.min(100, Math.round((item.total / maxTotal) * 100));
         return (
           '<div class="desk-book-row desk-book-row--bid">' +
-            '<span class="desk-price">₹' + item.price.toFixed(2) + '</span>' +
-            '<span class="desk-size text-right">' + item.size.toLocaleString() + '</span>' +
-            '<span class="desk-total text-right">' + item.total.toLocaleString() + '</span>' +
+            '<span class="desk-price">' + formatInrPrice(item.price, currentAsset.decimals) + '</span>' +
+            '<span class="desk-size text-right">' + Number(item.size).toLocaleString('en-US', { maximumFractionDigits: dec }) + '</span>' +
+            '<span class="desk-total text-right">' + Number(item.total).toLocaleString('en-US', { maximumFractionDigits: dec }) + '</span>' +
             '<div class="desk-book-row__fill" style="width:' + depthPct + '%;"></div>' +
           '</div>'
         );
       }).join('');
 
-      if (deskMidDisplay) deskMidDisplay.textContent = '₹' + mid.toFixed(2);
-      if (tMidRateEl) tMidRateEl.textContent = '₹' + mid.toFixed(2);
-      if (deskSummaryRate) deskSummaryRate.textContent = '1 USDT ≈ ₹' + mid.toFixed(2);
+      if (deskMidDisplay) deskMidDisplay.textContent = formatInrPrice(mid, currentAsset.decimals);
+      if (tMidRateEl) tMidRateEl.textContent = formatInrPrice(mid, currentAsset.decimals);
+      if (tRateChangeEl) {
+        const chg = currentAsset.change24h || 0.12;
+        tRateChangeEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+        tRateChangeEl.className = 'term-metric__val ' + (chg >= 0 ? 'term-metric__val--green' : 'term-metric__val--red');
+      }
+      if (tHighRateEl) tHighRateEl.textContent = formatInrPrice(mid * 1.018, currentAsset.decimals);
+      if (tLowRateEl) tLowRateEl.textContent = formatInrPrice(mid * 0.982, currentAsset.decimals);
+      if (deskSummaryRate) deskSummaryRate.textContent = '1 ' + unit + ' ≈ ' + formatInrPrice(mid, currentAsset.decimals);
     }
 
     // Trade Desk Calculator
     function updateTradeCalculator() {
+      if (!tradeInpPay || !tradeInpRec) return;
       const payVal = parseFloat(tradeInpPay.value) || 0;
-      const rate = baseUsdtPrice;
+      const rate = currentAsset.basePrice;
 
       if (activeSide === 'buy') {
-        const recUsdt = payVal > 0 ? (payVal / rate) : 0;
-        tradeInpRec.value = recUsdt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const recAsset = payVal > 0 ? (payVal / rate) : 0;
+        tradeInpRec.value = Number(recAsset).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: currentAsset.amountDecimals
+        });
       } else {
         const recInr = payVal > 0 ? (payVal * rate) : 0;
-        tradeInpRec.value = '₹' + recInr.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        tradeInpRec.value = '₹' + Number(recInr).toLocaleString('en-IN', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        });
       }
     }
 
     function setTradeSide(side) {
-      activeSide = side;
+      activeSide = side; // 'buy', 'sell' (corporate), 'ind_sell' (individual)
+      const sym = currentAsset.symbol;
+      const cs = currentAsset.currencySymbol;
+
       if (side === 'buy') {
         if (btnSideBuy) btnSideBuy.classList.add('is-active');
         if (btnSideSell) btnSideSell.classList.remove('is-active');
+        if (btnSideIndSell) btnSideIndSell.classList.remove('is-active');
 
         if (lblTradePay) lblTradePay.textContent = 'You Pay (INR)';
         if (symTradePay) symTradePay.textContent = '₹';
         if (codeTradePay) codeTradePay.textContent = 'INR';
 
-        if (lblTradeRec) lblTradeRec.textContent = 'You Receive (USDT)';
-        if (symTradeRec) symTradeRec.textContent = '₮';
-        if (codeTradeRec) codeTradeRec.textContent = 'USDT';
+        if (lblTradeRec) lblTradeRec.textContent = 'You Receive (' + sym + ')';
+        if (symTradeRec) symTradeRec.textContent = cs;
+        if (codeTradeRec) codeTradeRec.textContent = sym;
 
+        if (tagTradeMin) tagTradeMin.textContent = 'Min: ₹1 Lakh';
         if (btnSubmitDeskTrade) {
           btnSubmitDeskTrade.className = 'btn btn--trade-main btn--trade-main-buy';
         }
-        if (txtDeskTradeAction) txtDeskTradeAction.textContent = 'Buy USDT with INR';
-        if (tradeInpPay && !tradeInpPay.value) tradeInpPay.value = '500000';
-      } else {
-        if (btnSideSell) btnSideSell.classList.add('is-active');
+        if (txtDeskTradeAction) txtDeskTradeAction.textContent = 'Buy ' + sym + ' with INR';
+        if (deskSummaryRoute) deskSummaryRoute.textContent = 'Same-Day NEFT / RTGS';
+        if (deskSummaryType) deskSummaryType.textContent = 'Corporate / Institutional Assisted OTC';
+        if (deskComplianceNote) {
+          deskComplianceNote.textContent = '*Eligible for registered Indian corporate entities & verified introducers. Final quote locked at execution.';
+        }
+        if (tradeInpPay && (!tradeInpPay.value || tradeInpPay.value < 50000)) {
+          tradeInpPay.value = currentAsset.defaultPayInr;
+        }
+      } else if (side === 'ind_sell') {
+        if (btnSideIndSell) btnSideIndSell.classList.add('is-active');
         if (btnSideBuy) btnSideBuy.classList.remove('is-active');
+        if (btnSideSell) btnSideSell.classList.remove('is-active');
 
-        if (lblTradePay) lblTradePay.textContent = 'You Sell (USDT)';
-        if (symTradePay) symTradePay.textContent = '₮';
-        if (codeTradePay) codeTradePay.textContent = 'USDT';
+        if (lblTradePay) lblTradePay.textContent = 'You Sell (' + sym + ') [Individual]';
+        if (symTradePay) symTradePay.textContent = cs;
+        if (codeTradePay) codeTradePay.textContent = sym;
 
         if (lblTradeRec) lblTradeRec.textContent = 'You Receive (INR)';
         if (symTradeRec) symTradeRec.textContent = '₹';
         if (codeTradeRec) codeTradeRec.textContent = 'INR';
 
+        if (tagTradeMin) tagTradeMin.textContent = 'Min: ₹25,000';
+        if (btnSubmitDeskTrade) {
+          btnSubmitDeskTrade.className = 'btn btn--trade-main btn--trade-main-ind-sell';
+        }
+        if (txtDeskTradeAction) txtDeskTradeAction.textContent = 'Request Individual Sell (' + sym + ')';
+        if (deskSummaryRoute) deskSummaryRoute.textContent = 'Direct IMPS / NEFT to Personal Account';
+        if (deskSummaryType) deskSummaryType.textContent = 'Individual OTC Desk (1% TDS Compliant)';
+        if (deskComplianceNote) {
+          deskComplianceNote.textContent = '*Available for Indian individual tax residents (PAN & personal bank account verified). 1% TDS deducted and filed per IT Section 194S.';
+        }
+        if (tradeInpPay && (!tradeInpPay.value || tradeInpPay.value > 10000)) {
+          tradeInpPay.value = currentAsset.defaultSellAsset;
+        }
+      } else { // Corporate Sell
+        if (btnSideSell) btnSideSell.classList.add('is-active');
+        if (btnSideBuy) btnSideBuy.classList.remove('is-active');
+        if (btnSideIndSell) btnSideIndSell.classList.remove('is-active');
+
+        if (lblTradePay) lblTradePay.textContent = 'You Sell (' + sym + ') [Corporate]';
+        if (symTradePay) symTradePay.textContent = cs;
+        if (codeTradePay) codeTradePay.textContent = sym;
+
+        if (lblTradeRec) lblTradeRec.textContent = 'You Receive (INR)';
+        if (symTradeRec) symTradeRec.textContent = '₹';
+        if (codeTradeRec) codeTradeRec.textContent = 'INR';
+
+        if (tagTradeMin) tagTradeMin.textContent = 'Min: ₹1 Lakh';
         if (btnSubmitDeskTrade) {
           btnSubmitDeskTrade.className = 'btn btn--trade-main btn--trade-main-sell';
         }
-        if (txtDeskTradeAction) txtDeskTradeAction.textContent = 'Sell USDT for INR';
-        if (tradeInpPay && !tradeInpPay.value) tradeInpPay.value = '5000';
+        if (txtDeskTradeAction) txtDeskTradeAction.textContent = 'Corporate Sell ' + sym + ' for INR';
+        if (deskSummaryRoute) deskSummaryRoute.textContent = 'Corporate RTGS / Direct Bank Transfer';
+        if (deskSummaryType) deskSummaryType.textContent = 'Corporate Non-Custodial OTC (Entity Verified)';
+        if (deskComplianceNote) {
+          deskComplianceNote.textContent = '*Eligible for registered Indian corporate entities & verified introducers. Final quote locked at execution.';
+        }
+        if (tradeInpPay && (!tradeInpPay.value || tradeInpPay.value > 10000)) {
+          tradeInpPay.value = currentAsset.defaultSellAsset;
+        }
       }
+      if (txtBtnBuy) txtBtnBuy.textContent = 'Buy ' + sym;
       updateTradeCalculator();
+    }
+
+    // Function to switch selected asset across Terminal
+    setTerminalAsset = function(assetId) {
+      if (!TERMINAL_ASSETS[assetId]) return;
+      selectedAssetId = assetId;
+      currentAsset = TERMINAL_ASSETS[assetId];
+
+      if (graphAssetSelect && graphAssetSelect.value !== assetId) {
+        graphAssetSelect.value = assetId;
+      }
+
+      // Update Header details
+      if (terminalAssetLogo) terminalAssetLogo.src = currentAsset.logo;
+      if (terminalMainTitle) terminalMainTitle.textContent = currentAsset.symbol + ' / INR Live';
+      if (terminalChainBadge) terminalChainBadge.innerHTML = currentAsset.chains;
+      if (chartMarketTitle) chartMarketTitle.textContent = currentAsset.symbol + ' / INR';
+      if (deskBookSizeHead) deskBookSizeHead.textContent = 'Size (' + currentAsset.symbol + ')';
+
+      // Regenerate candles & update views
+      candleData = generateCandles(activeTimeframe, currentAsset.basePrice, currentAsset.volatility);
+      renderTerminalChart();
+      renderDeskOrderBook();
+      setTradeSide(activeSide);
+      updateOhlcDisplay(candleData[candleData.length - 1]);
+    };
+
+    if (graphAssetSelect) {
+      graphAssetSelect.addEventListener('change', function(e) {
+        setTerminalAsset(e.target.value);
+      });
     }
 
     if (btnSideBuy) btnSideBuy.addEventListener('click', function() { setTradeSide('buy'); });
     if (btnSideSell) btnSideSell.addEventListener('click', function() { setTradeSide('sell'); });
+    if (btnSideIndSell) btnSideIndSell.addEventListener('click', function() { setTradeSide('ind_sell'); });
     if (btnTradeSwap) btnTradeSwap.addEventListener('click', function() {
-      setTradeSide(activeSide === 'buy' ? 'sell' : 'buy');
+      if (activeSide === 'buy') {
+        setTradeSide('ind_sell');
+      } else {
+        setTradeSide('buy');
+      }
     });
 
     if (tradeInpPay) {
@@ -1300,21 +1526,32 @@
         const eqMsg = $('#eqMessage');
         const amount = tradeInpPay ? tradeInpPay.value : '';
         const rec = tradeInpRec ? tradeInpRec.value : '';
+        const sym = currentAsset.symbol;
 
         if (eqType) {
-          eqType.value = 'OTC service enquiry';
+          if (activeSide === 'ind_sell') {
+            eqType.value = 'Individual Sell enquiry';
+          } else if (activeSide === 'sell') {
+            eqType.value = 'Corporate OTC enquiry';
+          } else {
+            eqType.value = 'OTC service enquiry';
+          }
         }
 
         if (eqMsg) {
           if (activeSide === 'buy') {
-            eqMsg.value = 'I would like to request an assisted OTC purchase of ' + rec + ' USDT for approx. ₹' + Number(amount).toLocaleString('en-IN') + ' INR with same-day settlement.';
+            eqMsg.value = 'I would like to request an assisted OTC purchase of ' + rec + ' ' + sym + ' for approx. ₹' + Number(amount).toLocaleString('en-IN') + ' INR with same-day settlement.';
+          } else if (activeSide === 'ind_sell') {
+            eqMsg.value = 'I would like to request an assisted OTC Individual Sale of ' + Number(amount).toLocaleString('en-US') + ' ' + sym + ' for approx. ' + rec + ' with direct personal bank transfer (1% TDS compliant).';
           } else {
-            eqMsg.value = 'I would like to request an assisted OTC sale of ' + Number(amount).toLocaleString('en-US') + ' USDT for approx. ' + rec + ' with same-day bank settlement.';
+            eqMsg.value = 'I would like to request an assisted corporate OTC sale of ' + Number(amount).toLocaleString('en-US') + ' ' + sym + ' for approx. ' + rec + ' with corporate bank settlement.';
           }
         }
 
         if (contactSection) {
           contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.location.href = 'contact.html';
         }
 
         const enquiryCard = $('.enquiry-card');
@@ -1326,23 +1563,22 @@
           }, 2400);
         }
 
-        toast((activeSide === 'buy' ? 'Buy' : 'Sell') + ' USDT trade inquiry loaded. Please complete your contact details.', 'info', 5000);
+        const sideName = activeSide === 'ind_sell' ? 'Individual Sell' : (activeSide === 'sell' ? 'Corporate Sell' : 'Buy');
+        toast(sideName + ' ' + sym + ' trade inquiry loaded. Please complete your contact details.', 'info', 5000);
       });
     }
 
     // Micro-ticker simulation to keep live candle updating smoothly
     setInterval(function() {
-      const delta = (Math.random() * 0.04 - 0.02);
-      baseUsdtPrice = +(baseUsdtPrice + delta).toFixed(2);
-      if (baseUsdtPrice < 90.8) baseUsdtPrice = 90.85;
-      if (baseUsdtPrice > 92.2) baseUsdtPrice = 91.95;
+      const delta = (Math.random() * 0.04 - 0.02) * currentAsset.volatility * currentAsset.basePrice * 8;
+      currentAsset.basePrice = +(currentAsset.basePrice + delta).toFixed(currentAsset.decimals);
 
       if (candleData && candleData.length > 0) {
         const last = candleData[candleData.length - 1];
-        last.close = baseUsdtPrice;
-        if (baseUsdtPrice > last.high) last.high = baseUsdtPrice;
-        if (baseUsdtPrice < last.low) last.low = baseUsdtPrice;
-        last.volume += Math.round(Math.random() * 350);
+        last.close = currentAsset.basePrice;
+        if (currentAsset.basePrice > last.high) last.high = currentAsset.basePrice;
+        if (currentAsset.basePrice < last.low) last.low = currentAsset.basePrice;
+        last.volume += Math.round(Math.random() * (currentAsset.baseOrderSize * 0.1));
       }
 
       renderTerminalChart();
@@ -1357,11 +1593,28 @@
       }
     }, 4500);
 
+    updateTerminalLivePrices = function(data) {
+      if (!Array.isArray(data)) return;
+      data.forEach(function(coin) {
+        if (TERMINAL_ASSETS[coin.id] && coin.current_price) {
+          TERMINAL_ASSETS[coin.id].basePrice = Number(coin.current_price);
+          if (coin.price_change_percentage_24h != null) {
+            TERMINAL_ASSETS[coin.id].change24h = Number(coin.price_change_percentage_24h);
+          }
+        }
+      });
+      renderDeskOrderBook();
+      updateTradeCalculator();
+      if (hoverIndex === null && candleData && candleData.length > 0) {
+        candleData[candleData.length - 1].close = currentAsset.basePrice;
+        renderTerminalChart();
+        updateOhlcDisplay(candleData[candleData.length - 1]);
+      }
+    };
+
     // Initial render
-    renderTerminalChart();
-    renderDeskOrderBook();
-    updateTradeCalculator();
-    updateOhlcDisplay(candleData[candleData.length - 1]);
+    setTerminalAsset(selectedAssetId);
+    setTradeSide(activeSide);
   }
 
   console.log('PANDOSOFT INDIA ΓÇö OTC website client initialized.');
