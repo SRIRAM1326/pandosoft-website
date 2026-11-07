@@ -37,6 +37,15 @@
     }, duration);
   }
 
+  /* ── Disabled Buttons Guard ── */
+  document.addEventListener('click', function(e) {
+    const disabledBtn = e.target.closest('.is-disabled, [disabled], [aria-disabled="true"]');
+    if (disabledBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
   /* ΓöÇΓöÇ Reading Progress Bar ΓöÇΓöÇ */
   const progressBar = $('#progress');
   function updateProgress() {

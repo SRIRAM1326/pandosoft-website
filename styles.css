@@ -457,9 +457,13 @@ select {
   border-color: #fff;
 }
 
-.btn[disabled] {
-  opacity: .55;
-  pointer-events: none;
+.btn[disabled],
+.btn.is-disabled,
+.btn[aria-disabled="true"],
+a.is-disabled {
+  opacity: .45 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
 }
 
 .btn--done {
